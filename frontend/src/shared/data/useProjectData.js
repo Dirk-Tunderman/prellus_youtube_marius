@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { projectService } from "@/core/services";
 import { toast } from "sonner";
+import { useEffect } from "react";
 
 /**
  * Hook for project data operations
@@ -17,9 +18,19 @@ export function useProjectData() {
   } = useQuery({
     queryKey: ["projects"],
     queryFn: async () => {
-      return await projectService.getAllProjects();
+      console.log("[useProjectData] Fetching projects...");
+      const result = await projectService.getAllProjects();
+      console.log("[useProjectData] Projects result:", result);
+      return result;
     },
   });
+
+  // Debug log when projects data changes
+  useEffect(() => {
+    console.log("[useProjectData] Projects data:", projects);
+    console.log("[useProjectData] Loading state:", isLoadingProjects);
+    console.log("[useProjectData] Error state:", projectsError);
+  }, [projects, isLoadingProjects, projectsError]);
 
   // Function to get a transcript for a specific project
   const getTranscript = (projectId) => {

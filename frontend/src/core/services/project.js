@@ -1,11 +1,24 @@
 import api, { apiRequest } from "./api";
 
+// Helper function to log API requests and responses
+const logApiOperation = (operation, url, data = null) => {
+  console.log(`[projectService] ${operation} - URL: ${url}`);
+  if (data) {
+    console.log(`[projectService] ${operation} - Response:`, data);
+  }
+};
+
 export const projectService = {
   /**
    * Get all projects
    */
   getAllProjects: () => {
-    return apiRequest(() => api.get("/projects"));
+    console.log("[projectService] Getting all projects...");
+    return apiRequest(async () => {
+      const response = await api.get("/projects");
+      logApiOperation("getAllProjects", "/projects", response.data);
+      return response;
+    });
   },
 
   /**
@@ -13,7 +26,18 @@ export const projectService = {
    * @param {string} projectId - The ID of the project
    */
   getTranscript: (projectId) => {
-    return apiRequest(() => api.get(`/projects/${projectId}/transcript`));
+    console.log(
+      `[projectService] Getting transcript for project: ${projectId}`
+    );
+    return apiRequest(async () => {
+      const response = await api.get(`/projects/${projectId}/transcript`);
+      logApiOperation(
+        "getTranscript",
+        `/projects/${projectId}/transcript`,
+        response.data
+      );
+      return response;
+    });
   },
 
   /**
@@ -42,6 +66,18 @@ export const projectService = {
    * @param {string} projectId - The ID of the project to delete
    */
   deleteProject: (projectId) => {
-    return apiRequest(() => api.delete(`/projects/${projectId}`));
+    console.log(`[projectService] Deleting project: ${projectId}`);
+    const url = `/projects/${projectId}`;
+    console.log(`[projectService] Delete URL: ${api.defaults.baseURL}${url}`);
+    return apiRequest(async () => {
+      try {
+        const response = await api.delete(url);
+        logApiOperation("deleteProject", url, response.data);
+        return response;
+      } catch (error) {
+        console.error(`[projectService] Delete error:`, error);
+        throw error;
+      }
+    });
   },
 };

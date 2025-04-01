@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Select,
   SelectContent,
@@ -14,6 +14,10 @@ import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AlertCircle, CheckCircle2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  getProviderById,
+  getUniqueProviderIdsFromModels,
+} from "@/core/registry/models";
 
 export function DefaultModelSelector() {
   const {
@@ -85,39 +89,28 @@ export function DefaultModelSelector() {
             <SelectValue placeholder="Select a model" />
           </SelectTrigger>
           <SelectContent>
-            <SelectGroup>
-              <SelectLabel>Google Gemini Models</SelectLabel>
-              {modelOptions
-                .filter((model) => model.provider === "gemini")
-                .map((model) => (
-                  <SelectItem
-                    key={model.value}
-                    value={model.value}
-                    disabled={!isProviderConfigured(model.provider)}
-                  >
-                    {model.label}
-                    {!isProviderConfigured(model.provider) &&
-                      " (API key required)"}
-                  </SelectItem>
-                ))}
-            </SelectGroup>
-
-            <SelectGroup>
-              <SelectLabel>Anthropic Claude Models</SelectLabel>
-              {modelOptions
-                .filter((model) => model.provider === "anthropic")
-                .map((model) => (
-                  <SelectItem
-                    key={model.value}
-                    value={model.value}
-                    disabled={!isProviderConfigured(model.provider)}
-                  >
-                    {model.label}
-                    {!isProviderConfigured(model.provider) &&
-                      " (API key required)"}
-                  </SelectItem>
-                ))}
-            </SelectGroup>
+            {/* Dynamically generate model groups based on providers in the registry */}
+            {getUniqueProviderIdsFromModels().map((providerId) => {
+              const providerInfo = getProviderById(providerId);
+              return (
+                <SelectGroup key={providerId}>
+                  <SelectLabel>{providerInfo.name} Models</SelectLabel>
+                  {modelOptions
+                    .filter((model) => model.provider === providerId)
+                    .map((model) => (
+                      <SelectItem
+                        key={model.value}
+                        value={model.value}
+                        disabled={!isProviderConfigured(providerId)}
+                      >
+                        {model.label}
+                        {!isProviderConfigured(providerId) &&
+                          " (API key required)"}
+                      </SelectItem>
+                    ))}
+                </SelectGroup>
+              );
+            })}
           </SelectContent>
         </Select>
       </div>

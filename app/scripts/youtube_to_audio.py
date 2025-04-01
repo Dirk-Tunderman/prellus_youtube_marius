@@ -413,7 +413,7 @@ def main():
         json_data = {}
         if args.prompt_id:
             # Path to prompts directory
-            prompts_dir = os.path.join(project_root, "backend/data/stored_prompts")
+            prompts_dir = os.path.join(project_root, "app/data/stored_prompts")
             prompt_file = os.path.join(prompts_dir, f"{args.prompt_id}.json")
 
             if os.path.exists(prompt_file):

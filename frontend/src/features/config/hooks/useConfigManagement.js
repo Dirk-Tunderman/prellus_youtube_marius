@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { useConfigData } from "@/shared/data/useConfigData";
+import { providers, models, getModelsByProvider } from "@/core/registry/models";
 
 /**
  * Management hook for configuration settings
@@ -27,51 +28,11 @@ export function useConfigManagement() {
     isLoadingAvailableModels,
   } = useConfigData();
 
-  // Available providers
-  const availableProviders = [
-    { id: "gemini", name: "Google Gemini" },
-    { id: "anthropic", name: "Anthropic Claude" },
-  ];
+  // Available providers from the registry
+  const availableProviders = providers;
 
-  // Model options with provider grouping
-  const modelOptions = useMemo(
-    () => [
-      // Gemini Models
-      {
-        value: "gemini-2.5-pro-exp-03-25",
-        label: "Google Gemini 2.5 Pro Exp",
-        provider: "gemini",
-      },
-      {
-        value: "gemini-2.0-flash",
-        label: "Google Gemini 2.0 Flash",
-        provider: "gemini",
-      },
-      {
-        value: "gemini-2.0-flash-lite",
-        label: "Google Gemini 2.0 Flash Lite",
-        provider: "gemini",
-      },
-
-      // Anthropic Models
-      {
-        value: "claude-3-7-sonnet-20250219",
-        label: "Anthropic Claude 3.7 Sonnet",
-        provider: "anthropic",
-      },
-      {
-        value: "claude-3-5-sonnet-20241022",
-        label: "Anthropic Claude 3.5 Sonnet",
-        provider: "anthropic",
-      },
-      {
-        value: "claude-3-5-haiku-20241022",
-        label: "Anthropic Claude 3.5 Haiku",
-        provider: "anthropic",
-      },
-    ],
-    []
-  );
+  // Model options from the registry
+  const modelOptions = useMemo(() => models, []);
 
   // Check if a provider has an API key configured
   const isProviderConfigured = (providerId) => {
@@ -92,7 +53,7 @@ export function useConfigManagement() {
 
   // Get models for a specific provider
   const getModelsForProvider = (providerId) => {
-    return modelOptions.filter((model) => model.provider === providerId);
+    return getModelsByProvider(providerId);
   };
 
   // Get recommended models (ones that have API keys configured)
