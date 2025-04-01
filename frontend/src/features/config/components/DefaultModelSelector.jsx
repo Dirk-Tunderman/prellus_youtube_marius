@@ -21,15 +21,29 @@ export function DefaultModelSelector() {
     selectedModel,
     setSelectedModel,
     modelOptions,
-    getRecommendedModels,
     isProviderConfigured,
     isSelectedModelProviderConfigured,
     handleSaveDefaultModel,
     isLoadingDefaultModel,
     isSavingDefaultModel,
+    apiKeys,
+    availableModels,
   } = useConfigManagement();
 
-  const recommendedModels = getRecommendedModels();
+  // Debug logs
+  useEffect(() => {
+    console.log("API Keys:", JSON.stringify(apiKeys, null, 2));
+    console.log("Available Models:", JSON.stringify(availableModels, null, 2));
+    console.log("Default Model:", JSON.stringify(defaultModel, null, 2));
+    console.log("Is Gemini Configured:", isProviderConfigured("gemini"));
+    console.log("Model Options:", JSON.stringify(modelOptions, null, 2));
+  }, [
+    apiKeys,
+    availableModels,
+    defaultModel,
+    isProviderConfigured,
+    modelOptions,
+  ]);
 
   const onSaveDefaultModel = () => {
     const result = handleSaveDefaultModel();
@@ -38,6 +52,8 @@ export function DefaultModelSelector() {
       return;
     }
 
+    // Reset the selected model after successfully saving
+    setSelectedModel(null);
     toast.success("Default model saved successfully!");
   };
 
@@ -69,19 +85,6 @@ export function DefaultModelSelector() {
             <SelectValue placeholder="Select a model" />
           </SelectTrigger>
           <SelectContent>
-            {recommendedModels.length > 0 && (
-              <SelectGroup>
-                <SelectLabel>
-                  Recommended Models (API Key Configured)
-                </SelectLabel>
-                {recommendedModels.map((model) => (
-                  <SelectItem key={`rec-${model.value}`} value={model.value}>
-                    {model.label}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            )}
-
             <SelectGroup>
               <SelectLabel>Google Gemini Models</SelectLabel>
               {modelOptions

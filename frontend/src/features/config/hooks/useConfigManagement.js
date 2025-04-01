@@ -75,11 +75,19 @@ export function useConfigManagement() {
 
   // Check if a provider has an API key configured
   const isProviderConfigured = (providerId) => {
-    return (
-      (Array.isArray(apiKeys) &&
-        apiKeys.some((key) => key.provider === providerId)) ||
-      false
-    );
+    // Handle the case where apiKeys is an object with provider names as keys
+    if (apiKeys && typeof apiKeys === "object" && !Array.isArray(apiKeys)) {
+      const isConfigured = !!apiKeys[providerId];
+      return isConfigured;
+    }
+
+    // Fallback to the original array check for backward compatibility
+    if (Array.isArray(apiKeys)) {
+      const hasProvider = apiKeys.some((key) => key.provider === providerId);
+      return hasProvider;
+    }
+
+    return false;
   };
 
   // Get models for a specific provider
