@@ -49,7 +49,76 @@ src/
 
 ## Key Design Patterns
 
-### 1. Feature-Based Organization
+### 1. Context Provider Pattern
+
+The application uses React Context to share state across components within a feature. This pattern ensures that all components have access to the same state and can update it consistently.
+
+**Pattern Structure:**
+1. **Context Creation**: Define a React Context object for the feature
+2. **Provider Component**: Create a provider component that manages state and provides it to children
+3. **Custom Hook**: Create a custom hook that uses the context and provides a clean API
+4. **Wrapper Usage**: Wrap the feature's main component with the provider
+
+**Pseudocode Implementation:**
+```
+// 1. Create context
+const FeatureContext = createContext()
+
+// 2. Create provider component
+function FeatureProvider({ children }) {
+  // Manage state
+  const [state1, setState1] = useState()
+  const [state2, setState2] = useState()
+  
+  // Use data hooks
+  const { data, operations } = useDataHook()
+  
+  // Define operations that update state
+  function operation1() {
+    setState1(newValue)
+  }
+  
+  // Provide context value to children
+  return (
+    <FeatureContext.Provider value={{ state1, state2, operation1, data }}>
+      {children}
+    </FeatureContext.Provider>
+  )
+}
+
+// 3. Create custom hook
+function useFeatureContext() {
+  const context = useContext(FeatureContext)
+  if (!context) throw Error("Must use within provider")
+  return context
+}
+
+// 4. Usage in components
+function FeaturePage() {
+  return (
+    <FeatureProvider>
+      <FeatureContent />
+    </FeatureProvider>
+  )
+}
+
+function FeatureContent() {
+  const { state1, operation1 } = useFeatureContext()
+  // Use shared state and operations
+}
+```
+
+**Real-World Application:**
+In the Downloads feature, we implemented `ProjectContext` to share state like `showDeleteConfirm` and `projectToDelete` across components. This ensures that when a user clicks "Delete" on a project card, all components (including the confirmation dialog) have access to the same state.
+
+**Benefits:**
+- Ensures consistent state across all components
+- Prevents state synchronization issues
+- Simplifies component implementation
+- Improves maintainability by centralizing state logic
+- Solves the "prop drilling" problem
+
+### 2. Feature-Based Organization
 
 The application is organized around business features rather than technical layers. Each feature contains its own components and business logic, promoting cohesion and reducing coupling between unrelated parts of the application.
 
@@ -204,7 +273,21 @@ export function TranscriptForm({ onSubmit }) {
 
 ### Data Flow
 
-The application follows a unidirectional data flow pattern:
+The application follows a unidirectional data flow pattern, with the addition of the Context Provider Pattern for shared state:
+
+```mermaid
+flowchart TD
+    Services[Core Services] --> DataHooks[Shared Data Hooks]
+    DataHooks --> ManagementHooks[Feature Management Hooks]
+    ManagementHooks --> ContextProviders[Context Providers]
+    ContextProviders --> Components[UI Components]
+    Components -- User Actions --> ContextProviders
+    ContextProviders -- State Updates --> ManagementHooks
+    ManagementHooks -- API Calls --> DataHooks
+    DataHooks -- API Calls --> Services
+```
+
+For features that don't require shared state, components can use management hooks directly:
 
 ```mermaid
 flowchart TD
@@ -252,14 +335,26 @@ flowchart TD
 1. **Component State**
    - For UI-only state within a single component
    - Example: Form input values, toggle states
+   - Implemented using React's useState hook
 
 2. **Feature State**
    - For state shared between components in a feature
-   - Implemented using the Management Hook Pattern
+   - Two implementation approaches:
+     - **Management Hook Pattern**: For simpler features with limited component interaction
+     - **Context Provider Pattern**: For complex features where multiple components need to share and update the same state
 
 3. **Application State**
    - For state accessed across multiple features
    - Implemented using React Context in core/state.js
+
+### When to Use Each Approach
+
+| Approach | Use Case | Example |
+|----------|----------|---------|
+| Component State | UI-specific state that doesn't affect other components | Form input values, toggle states, local loading indicators |
+| Management Hook | Feature-specific state with limited component interaction | Simple form state, selected items in a list |
+| Context Provider | Complex state shared across multiple components in a feature | Delete confirmation flow, multi-step wizards, complex forms |
+| Application State | State that needs to be accessed across multiple features | User authentication, global settings, theme preferences |
 
 ## Notification Standard
 
