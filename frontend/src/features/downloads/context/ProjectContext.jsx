@@ -1,12 +1,12 @@
-import { useState, useEffect } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 import { useProjectData } from "@/shared/data/useProjectData";
 import { formatDate } from "@/lib/utils";
 
-/**
- * Management hook for project management and downloads
- * Builds on shared data hooks to add feature-specific business logic
- */
-export function useProjectManagement() {
+// Create context
+const ProjectContext = createContext(null);
+
+// Context provider component
+export function ProjectProvider({ children }) {
   // Feature-specific state
   const [selectedProjectId, setSelectedProjectId] = useState(null);
   const [showTranscript, setShowTranscript] = useState(false);
@@ -27,9 +27,21 @@ export function useProjectManagement() {
 
   // Debug log when projects data changes
   useEffect(() => {
-    console.log("[useProjectManagement] Projects data:", projects);
-    console.log("[useProjectManagement] Error state:", projectsError);
+    console.log("[ProjectContext] Projects data:", projects);
+    console.log("[ProjectContext] Error state:", projectsError);
   }, [projects, projectsError]);
+
+  // Debug effect to monitor state changes
+  useEffect(() => {
+    console.log(
+      "[ProjectContext] State changed - showDeleteConfirm:",
+      showDeleteConfirm
+    );
+    console.log(
+      "[ProjectContext] State changed - projectToDelete:",
+      projectToDelete
+    );
+  }, [showDeleteConfirm, projectToDelete]);
 
   // Get selected project
   const selectedProject = projects?.find((p) => p.id === selectedProjectId);
@@ -88,30 +100,15 @@ export function useProjectManagement() {
     }
   };
 
-  // Debug effect to monitor state changes
-  useEffect(() => {
-    console.log(
-      "[useProjectManagement] State changed - showDeleteConfirm:",
-      showDeleteConfirm
-    );
-    console.log(
-      "[useProjectManagement] State changed - projectToDelete:",
-      projectToDelete
-    );
-  }, [showDeleteConfirm, projectToDelete]);
-
   // Show delete confirmation
   const confirmDelete = (project) => {
-    console.log(
-      "[useProjectManagement] confirmDelete called with project:",
-      project
-    );
+    console.log("[ProjectContext] confirmDelete called with project:", project);
 
     // Use a single state update to ensure consistency
     setProjectToDelete(project);
     setShowDeleteConfirm(true);
 
-    console.log("[useProjectManagement] State updates requested");
+    console.log("[ProjectContext] State updates requested");
   };
 
   // Handle project deletion
@@ -137,7 +134,8 @@ export function useProjectManagement() {
     setProjectToDelete(null);
   };
 
-  return {
+  // Create context value
+  const contextValue = {
     // Data from shared hook
     projects,
     projectsError,
@@ -175,4 +173,19 @@ export function useProjectManagement() {
     // Operation states
     isDeleting,
   };
+
+  return (
+    <ProjectContext.Provider value={contextValue}>
+      {children}
+    </ProjectContext.Provider>
+  );
+}
+
+// Custom hook to use the context
+export function useProjectContext() {
+  const context = useContext(ProjectContext);
+  if (!context) {
+    throw new Error("useProjectContext must be used within a ProjectProvider");
+  }
+  return context;
 }

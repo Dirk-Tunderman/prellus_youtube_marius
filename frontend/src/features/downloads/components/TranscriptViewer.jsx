@@ -1,4 +1,4 @@
-import { useProjectManagement } from "../hooks";
+import { useProjectContext } from "../context/ProjectContext";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -20,7 +20,7 @@ export function TranscriptViewer() {
     handleDownloadTranscript,
     copyTranscript,
     getProjectDisplayName,
-  } = useProjectManagement();
+  } = useProjectContext();
 
   if (!selectedProject) {
     return null;

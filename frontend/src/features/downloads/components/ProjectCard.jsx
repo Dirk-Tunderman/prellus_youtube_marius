@@ -14,7 +14,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useProjectManagement } from "../hooks";
+import { useProjectContext } from "../context/ProjectContext";
 import { MoreHorizontal } from "lucide-react";
 
 export function ProjectCard({ project }) {
@@ -27,7 +27,7 @@ export function ProjectCard({ project }) {
     formatYoutubeUrl,
     getProjectDisplayName,
     showTranscript,
-  } = useProjectManagement();
+  } = useProjectContext();
 
   return (
     <Card className="h-full flex flex-col">

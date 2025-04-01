@@ -7,7 +7,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { useProjectManagement } from "../hooks";
+import { useProjectContext } from "../context/ProjectContext";
 import { toast } from "sonner";
 
 export function DeleteConfirmDialog() {
@@ -17,9 +17,15 @@ export function DeleteConfirmDialog() {
     cancelDelete,
     getProjectDisplayName,
     isDeleting,
-  } = useProjectManagement();
+  } = useProjectContext();
+
+  console.log(
+    "[DeleteConfirmDialog] Rendering with projectToDelete:",
+    projectToDelete
+  );
 
   if (!projectToDelete) {
+    console.log("[DeleteConfirmDialog] No projectToDelete, returning null");
     return null;
   }
 
