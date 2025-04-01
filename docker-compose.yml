@@ -12,6 +12,7 @@ services:
       - PYTHONUNBUFFERED=1
     volumes:
       - prellus_data:/app/data
+      - prellus_config:/app/config
     networks:
       - prellus_network
 
@@ -33,3 +34,5 @@ networks:
 volumes:
   prellus_data:
     name: prellus_data
+  prellus_config:
+    name: prellus_config
