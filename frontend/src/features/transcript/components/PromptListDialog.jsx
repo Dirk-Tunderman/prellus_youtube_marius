@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useTranscriptManagement } from "../hooks";
+import { useTranscriptContext } from "../context/TranscriptContext";
 import { formatDate } from "@/lib/utils";
 import { toast } from "sonner";
 import { Search } from "lucide-react";
@@ -16,7 +16,7 @@ import { useState } from "react";
 
 export function PromptListDialog() {
   const { prompts, handleLoadPrompt, setShowPromptList } =
-    useTranscriptManagement();
+    useTranscriptContext();
   const [searchTerm, setSearchTerm] = useState("");
 
   const filteredPrompts =

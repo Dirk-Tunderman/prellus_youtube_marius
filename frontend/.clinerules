@@ -9,7 +9,9 @@ src/
 │   └── [feature]/          # e.g., admin, calculator
 │       ├── components/     # Feature-specific components (always flat, no subfolders)
 │       │   └── index.js    # Barrel export file
-│       ├── hooks/          # Feature-specific business logic
+│       ├── context/        # Feature-specific context providers
+│       │   └── index.js    # Context barrel export
+│       ├── hooks/          # Additional feature-specific hooks (if needed)
 │       │   └── index.js    # Hooks barrel export
 │       └── index.js        # Feature barrel export
 │
@@ -100,8 +102,74 @@ import { useUserData } from '@/shared/data/useUserData';
       </content>
     </data_hook_decision>
     
+    <context_decision>
+      <subsection_title>4. Is this feature state shared across components?</subsection_title>
+      <content>
+        If you need to share state between multiple components in a feature or we need to make the state resistant to route changes, create a context provider:
+        
+        Place it in `/features/[feature]/context/[Feature]Context.jsx`
+
+        **Examples:** 
+        - User selection state shared between list and detail views
+        - Form wizard state shared across multiple steps
+        - Delete confirmation state shared between list and dialog
+        - State that needs to persist across route changes
+      </content>
+    </context_decision>
+    
+    <state_isolation_decision>
+      <subsection_title>4a. When to isolate state from React Query?</subsection_title>
+      <content>
+        **Use Pure React Context State (useState):**
+        - For UI state that needs to persist across route changes
+        - For form state that should not be affected by API cache invalidations
+        - When you need predictable state updates independent of network operations
+        - For complex multi-step forms or wizards
+        - When state needs to be completely isolated from server state
+        
+        **Use React Query Cache:**
+        - For server-derived state that should be synchronized with the backend
+        - When you want automatic cache invalidation and refetching
+        - For data that should be consistent across the application
+        - When optimistic updates are needed for better UX
+        - For data that doesn't need to persist across route changes
+        
+        **Implementation Example:**
+        ```jsx
+        // Pure React Context State Example
+        export function FeatureProvider({ children }) {
+          // UI state lives directly in the context using useState
+          const [formState, setFormState] = useState({
+            field1: "",
+            field2: "",
+          });
+          
+          // Use React Query only for server state
+          const { serverData, mutateData } = useDataHook();
+          
+          // Context value with both state types clearly separated
+          const contextValue = {
+            // UI State (managed by React)
+            formState,
+            setFormState,
+            
+            // Server State (managed by React Query)
+            serverData,
+            mutateData
+          };
+          
+          return (
+            <FeatureContext.Provider value={contextValue}>
+              {children}
+            </FeatureContext.Provider>
+          );
+        }
+        ```
+      </content>
+    </state_isolation_decision>
+    
     <component_decision>
-      <subsection_title>4. Is this a new UI component?</subsection_title>
+      <subsection_title>5. Is this a new UI component?</subsection_title>
       <content>
         Place it in the feature you're currently working on: `/features/[feature]/components/`.
         Only move to `/shared/components` when actually used by a second feature.
@@ -128,17 +196,22 @@ function FeatureComponent() {
     </component_state>
     
     <feature_state>
-      <subsection_title>2. Feature State: The Management Hook Pattern</subsection_title>
+      <subsection_title>2. Feature State: The Context Provider Pattern</subsection_title>
       <content>
         **WHEN TO USE:** State shared between components in a feature, business logic
 
-        Use the `use[Feature]Management` pattern that builds on data hooks:
+        Use the Context Provider Pattern to share state across components:
 
         <code_block>
-// features/admin/hooks/useUserManagement.js
+// features/admin/context/UserContext.jsx
+import { createContext, useContext, useState } from 'react';
 import { useUserData } from '@/shared/data/useUserData';
 
-export function useUserManagement() {
+// 1. Create context
+const UserContext = createContext(null);
+
+// 2. Create provider component
+export function UserProvider({ children }) {
   // Local feature state
   const [selectedUserId, setSelectedUserId] = useState(null);
   
@@ -155,7 +228,8 @@ export function useUserManagement() {
     user.role === 'admin' && user.status === 'active'
   ) || [];
   
-  return {
+  // Create context value
+  const contextValue = {
     // From data hook
     users,
     
@@ -171,7 +245,32 @@ export function useUserManagement() {
     update,
     deleteUser
   };
+  
+  return (
+    <UserContext.Provider value={contextValue}>
+      {children}
+    </UserContext.Provider>
+  );
 }
+
+// 3. Create custom hook to use the context
+export function useUserContext() {
+  const context = useContext(UserContext);
+  if (!context) {
+    throw new Error('useUserContext must be used within a UserProvider');
+  }
+  return context;
+}
+
+// 4. Usage in components:
+// function AdminPage() {
+//   return (
+//     <UserProvider>
+//       <UserList />
+//       <UserDetails />
+//     </UserProvider>
+//   );
+// }
         </code_block>
       </content>
     </feature_state>
@@ -256,7 +355,7 @@ export function useUserData() {
         Components should import shared data hooks directly:
 
         <code_block>
-// features/admin/components/UserList.js
+// features/admin/components/UserList.jsx
 import { useUserData } from '@/shared/data/useUserData';
 import { Table } from '@/components/ui/table';
 
@@ -274,6 +373,55 @@ export function UserList() {
         </code_block>
       </content>
     </component_usage>
+    
+    <context_usage>
+      <subsection_title>3. Context Usage in Components</subsection_title>
+      <content>
+        Components should use the feature context through the custom hook:
+
+        <code_block>
+// features/admin/components/UserList.jsx
+import { useUserContext } from '@/features/admin/context/UserContext';
+import { Table } from '@/components/ui/table';
+
+export function UserList() {
+  const { users, isLoading, selectedUserId, setSelectedUserId } = useUserContext();
+  
+  if (isLoading) return <div>Loading...</div>;
+  
+  return (
+    <Table>
+      {users.map(user => (
+        <tr 
+          key={user.id} 
+          className={user.id === selectedUserId ? 'selected' : ''}
+          onClick={() => setSelectedUserId(user.id)}
+        >
+          <td>{user.name}</td>
+        </tr>
+      ))}
+    </Table>
+  );
+}
+
+// features/admin/components/AdminPage.jsx
+import { UserProvider } from '@/features/admin/context/UserContext';
+import { UserList } from './UserList';
+import { UserDetails } from './UserDetails';
+
+export function AdminPage() {
+  return (
+    <UserProvider>
+      <div className="grid grid-cols-2 gap-4">
+        <UserList />
+        <UserDetails />
+      </div>
+    </UserProvider>
+  );
+}
+        </code_block>
+      </content>
+    </context_usage>
   </data_hooks>
   
   <routing>
@@ -299,12 +447,13 @@ export const router = createBrowserRouter([
   <naming_conventions>
     <section_title>File Naming Conventions</section_title>
     <content>
-      1. **Components:** Use PascalCase (`FactorForm.js`)
-      2. **Hooks:** Use camelCase with 'use' prefix (`useFactors.js`)
-      3. **Data Hooks:** Use camelCase with 'use[Entity]Data' pattern (`useUserData.js`)
-      4. **Utility Functions:** Use camelCase (`formatDate.js`)
-      5. **Barrel Files:** Always name `index.js`
-      6. **Feature Files:** Always name `use[Feature]Management`
+      1. **Components:** Use PascalCase (`FactorForm.jsx`)
+      2. **Context Providers:** Use PascalCase with 'Context' suffix (`UserContext.jsx`)
+      3. **Context Hooks:** Use camelCase with 'use[Feature]Context' pattern (`useUserContext`)
+      4. **Data Hooks:** Use camelCase with 'use[Entity]Data' pattern (`useUserData.js`)
+      5. **Utility Hooks:** Use camelCase with 'use' prefix (`useMediaQuery.js`)
+      6. **Utility Functions:** Use camelCase (`formatDate.js`)
+      7. **Barrel Files:** Always name `index.js`
     </content>
   </naming_conventions>
   

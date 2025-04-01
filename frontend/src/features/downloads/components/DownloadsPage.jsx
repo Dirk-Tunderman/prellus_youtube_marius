@@ -1,12 +1,11 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { ProjectList } from "./ProjectList";
 import { TranscriptViewer } from "./TranscriptViewer";
 import { DeleteConfirmDialog } from "./DeleteConfirmDialog";
-import { ProjectProvider, useProjectContext } from "../context/ProjectContext";
+import { useProjectContext } from "../context/ProjectContext";
 import { Skeleton } from "@/components/ui/skeleton";
 
-// Inner component that uses the context
-function DownloadsPageContent() {
+export function DownloadsPage() {
   const {
     showTranscript,
     showDeleteConfirm,
@@ -14,12 +13,6 @@ function DownloadsPageContent() {
     projects,
     projectToDelete,
   } = useProjectContext();
-
-  // Debug log when showDeleteConfirm or projectToDelete changes
-  useEffect(() => {
-    console.log("[DownloadsPage] showDeleteConfirm:", showDeleteConfirm);
-    console.log("[DownloadsPage] projectToDelete:", projectToDelete);
-  }, [showDeleteConfirm, projectToDelete]);
 
   return (
     <div className="container mx-auto py-6">
@@ -57,14 +50,5 @@ function DownloadsPageContent() {
 
       {showDeleteConfirm && <DeleteConfirmDialog />}
     </div>
-  );
-}
-
-// Wrapper component that provides the context
-export function DownloadsPage() {
-  return (
-    <ProjectProvider>
-      <DownloadsPageContent />
-    </ProjectProvider>
   );
 }

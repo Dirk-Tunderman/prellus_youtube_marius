@@ -9,7 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useTranscriptManagement } from "../hooks";
+import { useTranscriptContext } from "../context/TranscriptContext";
 import { toast } from "sonner";
 
 export function PromptSaveDialog() {
@@ -19,7 +19,7 @@ export function PromptSaveDialog() {
     handleSavePrompt,
     setShowSavePrompt,
     isSaving,
-  } = useTranscriptManagement();
+  } = useTranscriptContext();
 
   const onSave = () => {
     const result = handleSavePrompt();

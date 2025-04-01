@@ -1,20 +1,19 @@
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { useTranscriptManagement } from "../hooks";
+import { useTranscriptContext } from "../context/TranscriptContext";
 import { TranscriptForm } from "./TranscriptForm";
 import { PromptEditor } from "./PromptEditor";
 import { PromptSaveDialog } from "./PromptSaveDialog";
 import { PromptListDialog } from "./PromptListDialog";
-import { ModelSelector } from "./ModelSelector";
 import { toast } from "sonner";
 
 export function TranscriptPage() {
   const [activeTab, setActiveTab] = useState("basic");
-  const management = useTranscriptManagement();
+  const transcript = useTranscriptContext();
 
   const handleSubmit = () => {
-    const result = management.handleProcessTranscript();
+    const result = transcript.handleProcessTranscript();
     if (!result.success) {
       toast.error(result.error);
       return;
@@ -40,13 +39,9 @@ export function TranscriptPage() {
           <TranscriptForm />
 
           <div className="flex justify-between mt-6">
-            <div className="flex items-center space-x-2">
-              <Button onClick={handleSubmit} disabled={management.isProcessing}>
-                {management.isProcessing ? "Processing..." : "Process Video"}
-              </Button>
-
-              <ModelSelector />
-            </div>
+            <Button onClick={handleSubmit} disabled={transcript.isProcessing}>
+              {transcript.isProcessing ? "Processing..." : "Process Video"}
+            </Button>
 
             <Button variant="outline" onClick={() => setActiveTab("prompt")}>
               Configure Prompt →
@@ -62,15 +57,15 @@ export function TranscriptPage() {
               ← Back to Basic Info
             </Button>
 
-            <Button onClick={handleSubmit} disabled={management.isProcessing}>
-              {management.isProcessing ? "Processing..." : "Process Video"}
+            <Button onClick={handleSubmit} disabled={transcript.isProcessing}>
+              {transcript.isProcessing ? "Processing..." : "Process Video"}
             </Button>
           </div>
         </TabsContent>
       </Tabs>
 
-      {management.showSavePrompt && <PromptSaveDialog />}
-      {management.showPromptList && <PromptListDialog />}
+      {transcript.showSavePrompt && <PromptSaveDialog />}
+      {transcript.showPromptList && <PromptListDialog />}
     </div>
   );
 }

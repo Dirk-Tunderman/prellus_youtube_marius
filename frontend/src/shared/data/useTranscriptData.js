@@ -9,46 +9,6 @@ import { toast } from "sonner";
 export function useTranscriptData() {
   const queryClient = useQueryClient();
 
-  // Query for storing form state that persists across route changes
-  const { data: formState, isLoading: isLoadingFormState } = useQuery({
-    queryKey: ["transcript-form-state"],
-    queryFn: () => {
-      // Return default form state if none exists
-      return {
-        url: "",
-        title: "",
-        duration: 30,
-        promptName: "",
-        promptData: {
-          yourRole: "",
-          scriptStructure: "",
-          toneAndStyle: "",
-          retentionAndFlow: "",
-          additionalInstructions: "",
-        },
-      };
-    },
-    // Keep the data fresh for 24 hours
-    staleTime: 1000 * 60 * 60 * 24,
-    // Never garbage collect this data during the session
-    gcTime: Infinity,
-  });
-
-  // Mutation for updating form state
-  const updateFormState = useMutation({
-    mutationFn: async (newState) => {
-      // This is just updating the cache, no actual API call
-      return newState;
-    },
-    onSuccess: (newState) => {
-      // Update the cache with the new state
-      queryClient.setQueryData(["transcript-form-state"], (oldState) => ({
-        ...oldState,
-        ...newState,
-      }));
-    },
-  });
-
   // Query for fetching all transcripts
   const {
     data: transcripts,
@@ -98,11 +58,6 @@ export function useTranscriptData() {
     transcripts,
     isLoadingTranscripts,
     transcriptsError,
-
-    // Form state
-    formState,
-    isLoadingFormState,
-    updateFormState: updateFormState.mutate,
 
     // Operations
     processTranscript: processTranscript.mutate,

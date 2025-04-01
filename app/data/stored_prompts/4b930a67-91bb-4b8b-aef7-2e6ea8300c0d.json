@@ -1,0 +1,14 @@
+{
+  "meta_data": {
+    "prompt_name": "test3",
+    "date": "2025-04-01T22:20:56.907389",
+    "unique_identifier": "4b930a67-91bb-4b8b-aef7-2e6ea8300c0d"
+  },
+  "prompt": {
+    "Role": "test",
+    "Script_Structure": "test",
+    "Tone_Style": "adfdas",
+    "Retention_Flow": "adfdsafasdf",
+    "Additional_instructions": ""
+  }
+}

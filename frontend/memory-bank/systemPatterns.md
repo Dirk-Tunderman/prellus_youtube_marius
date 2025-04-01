@@ -49,67 +49,57 @@ src/
 
 ## Key Design Patterns
 
-### 1. Context Provider Pattern
+### 1. Context Provider Pattern with Pure React State
 
-The application uses React Context to share state across components within a feature. This pattern ensures that all components have access to the same state and can update it consistently.
+The application uses React Context with useState for UI state management, completely separate from React Query's server state management. This pattern ensures that UI state is preserved across route changes and is not affected by React Query cache invalidations.
 
 **Pattern Structure:**
 1. **Context Creation**: Define a React Context object for the feature
-2. **Provider Component**: Create a provider component that manages state and provides it to children
+2. **Provider Component**: Create a provider component that manages state with useState and provides it to children
 3. **Custom Hook**: Create a custom hook that uses the context and provides a clean API
 4. **Wrapper Usage**: Wrap the feature's main component with the provider
 
-**Pseudocode Implementation:**
-```
-// 1. Create context
-const FeatureContext = createContext()
+**Key Improvements:**
+- **State Isolation**: UI state is completely isolated from React Query cache
+- **Persistence**: State persists across route changes regardless of API operations
+- **Simplicity**: Direct useState management without cache dependencies
+- **Predictability**: State updates follow React's standard patterns
 
-// 2. Create provider component
-function FeatureProvider({ children }) {
-  // Manage state
-  const [state1, setState1] = useState()
-  const [state2, setState2] = useState()
+**Implementation Example (Pseudocode):**
+```
+// Context Provider Pattern Pseudocode
+function FeatureProvider(children) {
+  // UI state with useState
+  const [formState, setFormState] = useState({
+    field1: defaultValue,
+    field2: defaultValue
+  })
   
-  // Use data hooks
-  const { data, operations } = useDataHook()
+  // Server state with React Query
+  const { serverData } = useDataHook()
   
-  // Define operations that update state
-  function operation1() {
-    setState1(newValue)
+  // State updater functions
+  function updateField1(newValue) {
+    setFormState(prev => ({...prev, field1: newValue}))
   }
   
-  // Provide context value to children
-  return (
-    <FeatureContext.Provider value={{ state1, state2, operation1, data }}>
-      {children}
-    </FeatureContext.Provider>
-  )
-}
-
-// 3. Create custom hook
-function useFeatureContext() {
-  const context = useContext(FeatureContext)
-  if (!context) throw Error("Must use within provider")
-  return context
-}
-
-// 4. Usage in components
-function FeaturePage() {
-  return (
-    <FeatureProvider>
-      <FeatureContent />
-    </FeatureProvider>
-  )
-}
-
-function FeatureContent() {
-  const { state1, operation1 } = useFeatureContext()
-  // Use shared state and operations
+  // Create context value
+  const contextValue = {
+    // UI state and updaters
+    field1: formState.field1,
+    updateField1,
+    
+    // Server state and operations
+    serverData
+  }
+  
+  // Provide context to children
+  return <Context.Provider value={contextValue}>{children}</Context.Provider>
 }
 ```
 
 **Real-World Application:**
-In the Downloads feature, we implemented `ProjectContext` to share state like `showDeleteConfirm` and `projectToDelete` across components. This ensures that when a user clicks "Delete" on a project card, all components (including the confirmation dialog) have access to the same state.
+In the Transcript feature, we implemented `TranscriptContext` to manage form state directly with useState instead of using React Query's cache. This ensures that form state persists across route changes and is not affected by cache invalidations.
 
 **Benefits:**
 - Ensures consistent state across all components
@@ -117,6 +107,7 @@ In the Downloads feature, we implemented `ProjectContext` to share state like `s
 - Simplifies component implementation
 - Improves maintainability by centralizing state logic
 - Solves the "prop drilling" problem
+- Provides clear separation between UI state and server state
 
 ### 2. Feature-Based Organization
 
@@ -132,55 +123,50 @@ The application is organized around business features rather than technical laye
 
 Data access is centralized in shared data hooks that follow a consistent pattern. These hooks use React Query for data fetching, caching, and state management, providing a clean and efficient way to interact with the backend API.
 
-**Implementation:**
-```javascript
-// shared/data/useTranscriptData.js
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { transcriptService } from "@/core/services";
-import { toast } from "sonner";
-
-export function useTranscriptData() {
-  const queryClient = useQueryClient();
+**Implementation Example (Pseudocode):**
+```
+// Data Hook Pattern Pseudocode
+function useEntityData() {
+  const queryClient = useQueryClient()
 
   // Data fetching with React Query
   const { 
-    data: transcripts, 
-    isLoading: isLoadingTranscripts, 
-    error: transcriptsError 
+    data: entities, 
+    isLoading, 
+    error 
   } = useQuery({
-    queryKey: ["transcripts"],
-    queryFn: async () => {
-      return await transcriptService.getTranscripts();
-    },
-  });
+    queryKey: ["entities"],
+    queryFn: () => service.getEntities()
+  })
 
   // Mutations for modifying data
-  const processTranscript = useMutation({
-    mutationFn: async (data) => {
-      return await transcriptService.processTranscript(data);
-    },
+  const createEntity = useMutation({
+    mutationFn: (data) => service.createEntity(data),
     onSuccess: () => {
-      queryClient.invalidateQueries(["transcripts"]);
-      toast.success("Transcript processed successfully");
+      // Invalidate cache to refresh data
+      queryClient.invalidateQueries(["entities"])
+      // Show success notification
+      toast.success("Entity created successfully")
     },
     onError: (error) => {
-      toast.error(`Error: ${error.message || "Failed to process transcript"}`);
-    },
-  });
+      // Show error notification
+      toast.error("Failed to create entity: " + error.message)
+    }
+  })
 
-  // Return data, operations, and loading/error states
+  // Return data, operations, and states
   return {
     // Data
-    transcripts,
-    isLoadingTranscripts,
-    transcriptsError,
+    entities,
+    isLoading,
+    error,
     
     // Operations
-    processTranscript: processTranscript.mutate,
+    createEntity: createEntity.mutate,
     
     // Operation states
-    isProcessing: processTranscript.isPending
-  };
+    isCreating: createEntity.isPending
+  }
 }
 ```
 
@@ -197,33 +183,46 @@ export function useTranscriptData() {
 
 Feature-specific business logic is encapsulated in management hooks that build on data hooks. These hooks handle feature-specific state and operations.
 
-**Implementation:**
-```javascript
-// features/transcript/hooks/useTranscriptManagement.js
-export function useTranscriptManagement() {
+**Implementation Example (Pseudocode):**
+```
+// Management Hook Pattern Pseudocode
+function useFeatureManagement() {
   // Feature-specific state
-  const [selectedTranscriptId, setSelectedTranscriptId] = useState(null);
+  const [selectedItemId, setSelectedItemId] = useState(null)
   
   // Use the shared data hook
-  const { transcripts, processTranscript, isProcessing } = useTranscriptData();
+  const { items, createItem, updateItem, isLoading } = useEntityData()
   
   // Feature-specific business logic
-  const selectedTranscript = transcripts?.find(t => t.id === selectedTranscriptId);
+  const selectedItem = items?.find(item => item.id === selectedItemId)
   
-  const processWithCustomPrompt = (url, customPrompt) => {
-    processTranscript({
-      url,
-      promptData: customPrompt
-    });
-  };
+  // Business logic operations
+  function processItemWithOptions(itemId, options) {
+    // Transform options or add defaults
+    const processOptions = {
+      ...defaultOptions,
+      ...options,
+      timestamp: new Date()
+    }
+    
+    // Call data hook operation with transformed data
+    updateItem(itemId, processOptions)
+  }
   
+  // Return both data hook values and feature-specific values
   return {
-    transcripts,
-    selectedTranscript,
-    setSelectedTranscriptId,
-    processWithCustomPrompt,
-    isProcessing
-  };
+    // Pass-through from data hook
+    items,
+    isLoading,
+    
+    // Feature-specific state
+    selectedItemId,
+    setSelectedItemId,
+    selectedItem,
+    
+    // Feature-specific operations
+    processItemWithOptions
+  }
 }
 ```
 
@@ -245,29 +244,39 @@ This approach ensures consistent error handling across the application and provi
 
 UI components are composed from smaller, reusable components, promoting consistency and reducing duplication. shadcn/ui provides the foundation for this composition.
 
-**Implementation:**
-```jsx
-// features/transcript/components/TranscriptForm.jsx
-export function TranscriptForm({ onSubmit }) {
+**Implementation Example (Pseudocode):**
+```
+// Component Composition Pattern Pseudocode
+function FeatureComponent(props) {
+  // Use shadcn/ui components as building blocks
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Process YouTube Transcript</CardTitle>
+        <CardTitle>Feature Title</CardTitle>
       </CardHeader>
       <CardContent>
-        <Form onSubmit={onSubmit}>
+        <Form>
           <FormField
-            name="url"
-            label="YouTube URL"
-            placeholder="https://www.youtube.com/watch?v=..."
+            name="field1"
+            label="Field Label"
           />
-          <Button type="submit">Process</Button>
+          <FormField
+            name="field2"
+            label="Another Field"
+          />
+          <Button>Submit</Button>
         </Form>
       </CardContent>
     </Card>
-  );
+  )
 }
 ```
+
+**Key Benefits:**
+- Consistent UI appearance across the application
+- Reduced duplication of styling and behavior
+- Better accessibility through well-designed base components
+- Easier maintenance with standardized component patterns
 
 ## Component Relationships
 
@@ -361,27 +370,32 @@ flowchart TD
 To ensure a consistent user experience, all notifications in the application use the toast component from the sonner library:
 
 1. **Standard Component**: Always use toast directly from `sonner` package:
-   ```javascript
-   import { toast } from "sonner";
+   ```
+   // Notification Pattern Pseudocode
    
    // Success notification
-   toast.success("Operation completed successfully");
+   toast.success("Operation completed successfully")
    
    // Error notification
-   toast.error("An error occurred");
+   toast.error("Error message: " + error.message)
+   
+   // Info notification
+   toast.info("Information message")
+   
+   // Warning notification
+   toast.warning("Warning message")
    ```
 
 2. **Toast Component**: Use the Toaster component from shadcn/ui in the application root:
-   ```jsx
-   import { Toaster } from "@/components/ui/sonner";
-   
+   ```
+   // App Component Pseudocode
    function App() {
      return (
        <>
          <Toaster />
-         {/* Rest of your app */}
+         <AppContent />
        </>
-     );
+     )
    }
    ```
 

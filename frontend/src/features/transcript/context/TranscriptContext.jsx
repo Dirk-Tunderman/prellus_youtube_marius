@@ -1,36 +1,43 @@
-import { useState, useEffect } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 import { useTranscriptData } from "@/shared/data/useTranscriptData";
 import { usePromptData } from "@/shared/data/usePromptData";
 import { extractYoutubeId } from "@/lib/utils";
 
-/**
- * Management hook for transcript processing functionality
- * Builds on shared data hooks to add feature-specific business logic
- */
-export function useTranscriptManagement() {
-  // UI state (not persisted)
+// Create context
+const TranscriptContext = createContext(null);
+
+export function TranscriptProvider({ children }) {
+  // UI state (persisted between route changes)
   const [showSavePrompt, setShowSavePrompt] = useState(false);
   const [showPromptList, setShowPromptList] = useState(false);
 
-  // Use the shared data hooks
-  const {
-    transcripts,
-    processTranscript,
-    processWithModel,
-    isProcessing,
-    formState,
-    isLoadingFormState,
-    updateFormState,
-  } = useTranscriptData();
+  // Form state now lives directly in the context
+  const [formState, setFormState] = useState({
+    url: "",
+    title: "",
+    duration: 30,
+    promptName: "",
+    promptData: {
+      yourRole: "",
+      scriptStructure: "",
+      toneAndStyle: "",
+      retentionAndFlow: "",
+      additionalInstructions: "",
+    },
+  });
+
+  // Use the shared data hooks (but not for form state)
+  const { transcripts, processTranscript, processWithModel, isProcessing } =
+    useTranscriptData();
 
   const { prompts, savePrompt, getPrompt, isSaving } = usePromptData();
 
   // Extract form state values for convenience
-  const url = formState?.url || "";
-  const title = formState?.title || "";
-  const duration = formState?.duration || "";
-  const promptName = formState?.promptName || "";
-  const promptData = formState?.promptData || {
+  const url = formState.url || "";
+  const title = formState.title || "";
+  const duration = formState.duration || "";
+  const promptName = formState.promptName || "";
+  const promptData = formState.promptData || {
     yourRole: "",
     scriptStructure: "",
     toneAndStyle: "",
@@ -40,19 +47,19 @@ export function useTranscriptManagement() {
 
   // Wrapper functions to update form state
   const setUrl = (newUrl) => {
-    updateFormState({ url: newUrl });
+    setFormState((prev) => ({ ...prev, url: newUrl }));
   };
 
   const setTitle = (newTitle) => {
-    updateFormState({ title: newTitle });
+    setFormState((prev) => ({ ...prev, title: newTitle }));
   };
 
   const setDuration = (newDuration) => {
-    updateFormState({ duration: newDuration });
+    setFormState((prev) => ({ ...prev, duration: newDuration }));
   };
 
   const setPromptName = (newPromptName) => {
-    updateFormState({ promptName: newPromptName });
+    setFormState((prev) => ({ ...prev, promptName: newPromptName }));
   };
 
   // Auto-populate title when URL changes
@@ -67,20 +74,22 @@ export function useTranscriptManagement() {
 
   // Handle changes to prompt fields
   const handlePromptChange = (field, value) => {
-    updateFormState({
+    setFormState((prev) => ({
+      ...prev,
       promptData: {
-        ...promptData,
+        ...prev.promptData,
         [field]: value,
       },
-    });
+    }));
   };
 
   // Reset form
   const resetForm = () => {
-    updateFormState({
+    setFormState({
       url: "",
       title: "",
       duration: "",
+      promptName: "",
       promptData: {
         yourRole: "",
         scriptStructure: "",
@@ -164,24 +173,32 @@ export function useTranscriptManagement() {
   // Load prompt template
   const handleLoadPrompt = async (promptId) => {
     try {
-      const result = await getPrompt(promptId).refetch();
+      console.log("Loading prompt with ID:", promptId);
+      const data = await getPrompt(promptId);
+      console.log("Prompt data received:", data);
 
-      if (result.data && result.data.promptData) {
-        updateFormState({
-          promptData: result.data.promptData,
-        });
+      if (data && data.promptData) {
+        // The data already has the correct structure, no need to map field names
+        setFormState((prev) => ({
+          ...prev,
+          promptData: data.promptData,
+          promptName: data.metaData.prompt_name || "",
+        }));
         return { success: true, error: null };
       } else {
+        console.error("Invalid prompt data format:", data);
         return { success: false, error: "Failed to load prompt data" };
       }
     } catch (error) {
+      console.error("Error loading prompt:", error);
       return { success: false, error: "Failed to load prompt" };
     } finally {
       setShowPromptList(false);
     }
   };
 
-  return {
+  // Create context value
+  const contextValue = {
     // Form state
     url,
     setUrl,
@@ -213,4 +230,21 @@ export function useTranscriptManagement() {
     isProcessing,
     isSaving,
   };
+
+  return (
+    <TranscriptContext.Provider value={contextValue}>
+      {children}
+    </TranscriptContext.Provider>
+  );
+}
+
+// Custom hook to use the context
+export function useTranscriptContext() {
+  const context = useContext(TranscriptContext);
+  if (!context) {
+    throw new Error(
+      "useTranscriptContext must be used within a TranscriptProvider"
+    );
+  }
+  return context;
 }

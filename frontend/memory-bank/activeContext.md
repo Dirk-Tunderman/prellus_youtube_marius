@@ -17,7 +17,22 @@ All planned components have been implemented, and the project is now waiting for
 
 ## Recent Changes
 
-1. **Context Provider Pattern Implementation**:
+1. **Form State Management Improvements**:
+   - Fixed "Failed to load prompt" issue by correctly mapping backend response structure
+   - Migrated form state from React Query cache to React Context for better persistence
+   - Implemented pure React Context state management in TranscriptContext
+   - Removed dependency on React Query for UI state management
+   - Improved state isolation to prevent cache invalidation issues
+   - Created a cleaner separation between server state and UI state
+
+2. **UI Enhancements**:
+   - Added Clear Form buttons to both TranscriptForm and PromptEditor components
+   - Removed ModelSelector from the basic info tab for a cleaner interface
+   - Implemented shadcn/ui Form components with proper validation
+   - Improved form field handling to allow completely emptying the duration field
+   - Enhanced user experience with consistent button styling and iconography
+
+3. **Context Provider Pattern Implementation**:
    - Identified and resolved state synchronization issues in the Downloads feature
    - Implemented ProjectContext to share state across components
    - Refactored components to use the shared context instead of individual hook instances
@@ -25,7 +40,7 @@ All planned components have been implemented, and the project is now waiting for
    - Added detailed logging for debugging and future maintenance
    - Created a reusable pattern for other features that need shared state
 
-2. **Bug Resolution: Delete Confirmation Dialog**:
+4. **Bug Resolution: Delete Confirmation Dialog**:
    - Diagnosed issue where delete confirmation dialog wasn't appearing
    - Root cause: State updates in one component weren't reflected in others
    - Solution: Implemented Context Provider Pattern to share state

@@ -21,15 +21,17 @@ export function usePromptData() {
     },
   });
 
-  // Function to get a specific prompt by ID
-  const getPrompt = (promptId) => {
-    return useQuery({
-      queryKey: ["prompts", promptId],
-      queryFn: async () => {
-        return await promptService.getPrompt(promptId);
-      },
-      enabled: !!promptId, // Only run if promptId is provided
-    });
+  // Function to get a specific prompt by ID - direct API call instead of a hook
+  const getPrompt = async (promptId) => {
+    console.log("Getting prompt with ID:", promptId);
+    try {
+      const result = await promptService.getPrompt(promptId);
+      console.log("Prompt data received:", result);
+      return result;
+    } catch (error) {
+      console.error("Error fetching prompt:", error);
+      throw error;
+    }
   };
 
   // Mutation for saving a prompt

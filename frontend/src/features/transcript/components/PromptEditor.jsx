@@ -7,7 +7,8 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useTranscriptManagement } from "../hooks";
+import { useTranscriptContext } from "../context/TranscriptContext";
+import { Eraser } from "lucide-react";
 
 export function PromptEditor() {
   const {
@@ -16,13 +17,23 @@ export function PromptEditor() {
     setShowSavePrompt,
     setShowPromptList,
     isProcessing,
-  } = useTranscriptManagement();
+    resetForm,
+  } = useTranscriptContext();
 
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Prompt Configuration</CardTitle>
         <div className="flex space-x-2">
+          <Button
+            variant="outline"
+            onClick={resetForm}
+            disabled={isProcessing}
+            size="sm"
+          >
+            <Eraser className="mr-2 h-4 w-4" />
+            Clear Form
+          </Button>
           <Button
             variant="outline"
             onClick={() => setShowPromptList(true)}

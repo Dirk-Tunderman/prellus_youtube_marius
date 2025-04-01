@@ -23,14 +23,14 @@ import {
   CommandInput,
   CommandItem,
 } from "@/components/ui/command";
-import { useTranscriptManagement } from "../hooks";
+import { useTranscriptContext } from "../context/TranscriptContext";
 import { useConfigData } from "@/shared/data";
 import { toast } from "sonner";
 
 export function ModelSelector() {
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState("");
-  const { handleProcessWithModel, isProcessing } = useTranscriptManagement();
+  const { handleProcessWithModel, isProcessing } = useTranscriptContext();
   const { availableModels, isLoadingAvailableModels } = useConfigData();
 
   // Group models by provider
