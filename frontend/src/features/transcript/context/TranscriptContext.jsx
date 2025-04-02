@@ -32,7 +32,8 @@ export function TranscriptProvider({ children }) {
   const { transcripts, processTranscript, processWithModel, isProcessing } =
     useTranscriptData();
 
-  const { prompts, savePrompt, getPrompt, isSaving } = usePromptData();
+  const { prompts, savePrompt, getPrompt, deletePrompt, isSaving, isDeleting } =
+    usePromptData();
 
   // Extract form state values for convenience
   const url = formState.url || "";
@@ -102,7 +103,7 @@ export function TranscriptProvider({ children }) {
       title: "",
       duration: "",
       promptName: "",
-      voice: "af_bella",
+      voice: "bm_lewis",
       speed: 0.7,
       promptData: {
         yourRole: "",
@@ -188,6 +189,12 @@ export function TranscriptProvider({ children }) {
     return { success: true, error: null };
   };
 
+  // Delete prompt template
+  const handleDeletePrompt = (promptId) => {
+    deletePrompt(promptId);
+    return { success: true, error: null };
+  };
+
   // Load prompt template
   const handleLoadPrompt = async (promptId) => {
     try {
@@ -245,12 +252,14 @@ export function TranscriptProvider({ children }) {
     handleProcessWithModel,
     handleSavePrompt,
     handleLoadPrompt,
+    handleDeletePrompt,
     resetForm,
     validateForm,
 
     // Operation states
     isProcessing,
     isSaving,
+    isDeleting,
   };
 
   return (
