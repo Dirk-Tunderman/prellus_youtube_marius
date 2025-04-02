@@ -153,8 +153,7 @@ export function TranscriptForm() {
                     />
                   </FormControl>
                   <FormDescription>
-                    Maximum length of the video to process (up to 180 minutes,
-                    leave empty for no limit)
+                    Choose your desired duration for the transcript
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
