@@ -25,24 +25,6 @@ export function ProjectProvider({ children }) {
     projectsError,
   } = useProjectData();
 
-  // Debug log when projects data changes
-  useEffect(() => {
-    console.log("[ProjectContext] Projects data:", projects);
-    console.log("[ProjectContext] Error state:", projectsError);
-  }, [projects, projectsError]);
-
-  // Debug effect to monitor state changes
-  useEffect(() => {
-    console.log(
-      "[ProjectContext] State changed - showDeleteConfirm:",
-      showDeleteConfirm
-    );
-    console.log(
-      "[ProjectContext] State changed - projectToDelete:",
-      projectToDelete
-    );
-  }, [showDeleteConfirm, projectToDelete]);
-
   // Get selected project
   const selectedProject = projects?.find((p) => p.id === selectedProjectId);
 

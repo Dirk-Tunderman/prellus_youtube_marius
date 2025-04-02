@@ -7,7 +7,8 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Download, Trash2, Eye } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+import { Download, Trash2, ChevronDown } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,7 +16,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useProjectContext } from "../context/ProjectContext";
-import { MoreHorizontal } from "lucide-react";
 
 export function ProjectCard({ project }) {
   const {
@@ -36,57 +36,80 @@ export function ProjectCard({ project }) {
           <CardTitle className="text-lg">
             {getProjectDisplayName(project)}
           </CardTitle>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {project.hasTranscript && (
-                <DropdownMenuItem onClick={() => handleViewTranscript(project)}>
-                  <Eye className="mr-2 h-4 w-4" />
-                  View Transcript
-                </DropdownMenuItem>
-              )}
-              {project.hasTranscript && (
-                <DropdownMenuItem
-                  onClick={() => handleDownloadTranscript(project.id)}
-                >
-                  <Download className="mr-2 h-4 w-4" />
-                  Download Transcript
-                </DropdownMenuItem>
-              )}
-              <DropdownMenuItem
-                onClick={() => confirmDelete(project)}
-                className="text-red-600"
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Delete Project
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex gap-1">
+            {(project.hasTranscript ||
+              (project.audioFiles && project.audioFiles.length > 0)) && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-blue-600 hover:bg-blue-50"
+                    title="Download options"
+                  >
+                    <Download className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  {project.hasTranscript && (
+                    <DropdownMenuItem
+                      onClick={() => handleDownloadTranscript(project.id)}
+                    >
+                      <Download className="mr-2 h-4 w-4" />
+                      Download Transcript
+                    </DropdownMenuItem>
+                  )}
+                  {project.audioFiles &&
+                    project.audioFiles.length > 0 &&
+                    project.audioFiles.map((audioFile) => (
+                      <DropdownMenuItem
+                        key={audioFile}
+                        onClick={() =>
+                          handleDownloadAudio(project.id, audioFile)
+                        }
+                      >
+                        <Download className="mr-2 h-4 w-4" />
+                        Download Audio
+                      </DropdownMenuItem>
+                    ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-red-600 hover:bg-red-50"
+              onClick={() => confirmDelete(project)}
+              title="Delete project"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
         <div className="text-sm text-muted-foreground">
           {formatDate(project.date)}
         </div>
-        {project.url && (
+
+        {/* Extract YouTube ID from project ID and create URL */}
+        {project.id && (
           <a
-            href={project.url}
+            href={`https://www.youtube.com/watch?v=${project.id.split("_")[0]}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-sm text-blue-600 hover:underline mt-1 block"
+            className="text-sm text-blue-600 hover:underline mt-1 block font-medium"
           >
-            {formatYoutubeUrl(project.url)}
+            {`https://www.youtube.com/watch?v=${project.id.split("_")[0]}`}
           </a>
         )}
       </CardHeader>
-      <CardContent className="flex-grow">
+      <CardContent className="flex-grow pt-0">
+        <Separator className="my-2" />
         <div className="flex flex-wrap gap-2 mt-1">
           {project.hasTranscript && (
             <Badge
               variant="outline"
-              className="bg-green-50 text-green-700 border-green-200"
+              className="bg-green-50 text-green-700 border-green-200 cursor-pointer hover:bg-green-100"
+              onClick={() => handleViewTranscript(project)}
             >
               Transcript
             </Badge>
@@ -110,22 +133,6 @@ export function ProjectCard({ project }) {
             )}
         </div>
       </CardContent>
-      {project.audioFiles && project.audioFiles.length > 0 && (
-        <CardFooter className="pt-0 flex flex-wrap gap-2">
-          {project.audioFiles.map((audioFile) => (
-            <Button
-              key={audioFile}
-              variant="outline"
-              size="sm"
-              onClick={() => handleDownloadAudio(project.id, audioFile)}
-              className="text-blue-600"
-            >
-              <Download className="mr-2 h-4 w-4" />
-              Download Audio
-            </Button>
-          ))}
-        </CardFooter>
-      )}
     </Card>
   );
 }
