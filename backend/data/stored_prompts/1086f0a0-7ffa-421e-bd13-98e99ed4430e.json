@@ -1,0 +1,14 @@
+{
+  "meta_data": {
+    "prompt_name": "simple prompt",
+    "date": "2025-04-01T16:12:50.754041",
+    "unique_identifier": "1086f0a0-7ffa-421e-bd13-98e99ed4430e"
+  },
+  "prompt": {
+    "Role": "storywriter",
+    "Script_Structure": "newline after each sentence",
+    "Tone_Style": "exiting and storytelling",
+    "Retention_Flow": "",
+    "Additional_instructions": ""
+  }
+}

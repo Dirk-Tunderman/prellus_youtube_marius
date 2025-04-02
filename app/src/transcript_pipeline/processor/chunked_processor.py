@@ -1056,7 +1056,7 @@ class ChunkedProcessor:
                     )
 
                     min_target_length = int(max_chapter_size * 0.7)
-                    max_target_length = int(max_chapter_size * 1.7)
+                    max_target_length = int(max_chapter_size * 1.5)
 
                     if output_length < min_target_length:
                         logger.warning(
@@ -1129,18 +1129,85 @@ class ChunkedProcessor:
                 with open(chapter_path, "w", encoding="utf-8") as f:
                     f.write(chapter_text)
 
-        # Join all chapters and return
-        expanded_transcript = "\n\n".join(processed_chapters)
+            # Join all chapters and return
+            expanded_transcript = "\n\n".join(processed_chapters)
 
-        # Save chunk info if output directory exists
-        if self.output_dir:
-            chunks_info_path = os.path.join(
-                self.output_dir, "expansion_chunks_info.json"
-            )
-            with open(chunks_info_path, "w", encoding="utf-8") as f:
-                json.dump(chunks_info, f, indent=2)
+            # Calculate the length of the expanded transcript
+            expanded_transcript_length = len(expanded_transcript)
+            logger.info(f"Expanded transcript length: {expanded_transcript_length} characters")
 
-        return expanded_transcript
+            # Calculate expected length of expanded transcript
+            expected_length = int(config["ai"]["length_in_chars"])
+            logger.info(f"Expected transcript length: {expected_length} characters")
+
+            # Calculate the maximum acceptable length (expected length + 50,000 characters)
+            max_acceptable_length = expected_length + 50000
+            logger.info(f"Maximum acceptable length: {max_acceptable_length} characters")
+
+            # Check if the expanded transcript is too long and needs to be trimmed
+            if expanded_transcript_length > max_acceptable_length:
+                logger.warning(f"Transcript is too long by {expanded_transcript_length - max_acceptable_length} characters")
+                
+                # Find chapter boundaries in the expanded transcript
+                chapter_pattern = re.compile(r'^Chapter \d+', re.MULTILINE)
+                chapter_matches = list(chapter_pattern.finditer(expanded_transcript))
+                
+                if len(chapter_matches) > 1:  # Only proceed if we have more than one chapter
+                    logger.info(f"Found {len(chapter_matches)} chapters in the transcript")
+                    
+                    # Create a list of chapter positions and sizes
+                    chapters = []
+                    for i in range(len(chapter_matches)):
+                        start_pos = chapter_matches[i].start()
+                        end_pos = chapter_matches[i+1].start() if i < len(chapter_matches) - 1 else len(expanded_transcript)
+                        chapter_size = end_pos - start_pos
+                        
+                        chapters.append({
+                            'index': i,
+                            'start': start_pos,
+                            'end': end_pos,
+                            'size': chapter_size,
+                            'content': expanded_transcript[start_pos:end_pos]
+                        })
+                    
+                    # Calculate how many chapters we need to remove from the end
+                    chapters_to_keep = len(chapters)
+                    trimmed_length = expanded_transcript_length
+                    
+                    # Remove chapters from the end until we're within the max acceptable length
+                    while trimmed_length > max_acceptable_length and chapters_to_keep > 1:
+                        chapters_to_keep -= 1
+                        removed_chapter_size = chapters[chapters_to_keep]['size']
+                        trimmed_length -= removed_chapter_size
+                        logger.info(f"Removing Chapter {chapters_to_keep + 1} ({removed_chapter_size} chars)")
+                    
+                    if chapters_to_keep < len(chapters):
+                        # Reconstruct the transcript with only the chapters we're keeping
+                        expanded_transcript = "".join([ch['content'] for ch in chapters[:chapters_to_keep]])
+                        final_length = len(expanded_transcript)
+                        
+                        logger.info(f"Trimmed transcript from {expanded_transcript_length} to {final_length} characters")
+                        logger.info(f"Removed {len(chapters) - chapters_to_keep} chapters")
+                    else:
+                        logger.warning("Could not trim transcript by removing whole chapters.")
+                else:
+                    logger.warning("Not enough chapters found to trim the transcript")
+
+            # Calculate the ratio of the expanded transcript to the expected length
+            expanded_transcript_length = len(expanded_transcript)  # Recalculate after possible trimming
+            ratio = expanded_transcript_length / expected_length
+            logger.info(f"Final transcript length: {expanded_transcript_length} characters")
+            logger.info(f"Ratio to expected length: {ratio:.2f}x")
+
+            # Save chunk info if output directory exists
+            if self.output_dir:
+                chunks_info_path = os.path.join(
+                    self.output_dir, "expansion_chunks_info.json"
+                )
+                with open(chunks_info_path, "w", encoding="utf-8") as f:
+                    json.dump(chunks_info, f, indent=2)
+
+            return expanded_transcript
 
     def _create_chapter_aligned_chunks(
         self, chapters: List[Dict[str, Any]], transcript_length: int = None
