@@ -43,12 +43,12 @@ class TTSGenerator:
         
         # Default configuration values
         self.language_code = self.config.get("language", "b")  # Default language code (b for British English)
-        self.voice = self.config.get("voice_pack", "bm_george")  # Default voice set to British Male George
+        self.voice = self.config.get("voice_pack", "bm_lewis")  # Default voice set to British Male George
         self.sample_rate = 24000  # Fixed sample rate for Kokoro
         self.output_format = self.config.get("output_format", "wav")
         self.max_chunk_length = self.config.get("max_chunk_length", 500)  # Max characters per chunk
         self.pause_between_chunks = self.config.get("pause_between_chunks", 0.7)  # Seconds
-        self.speed = self.config.get("speed", 0.9)  # Speech speed set to 0.9
+        self.speed = self.config.get("speed", 0.8)  # Speech speed set to 0.9
         
         # Check if kokoro command is available
         self._check_kokoro_available()
@@ -356,6 +356,8 @@ def generate_audio_from_transcript(transcript_dir: str, config: Dict[str, Any] =
     audio_dir = os.path.join(transcript_dir, "audio")
     os.makedirs(audio_dir, exist_ok=True)
     
+    #print the config
+    print(f"config: {config}")
     # Path to processed transcript
     processed_dir = os.path.join(transcript_dir, "processed")
     if not os.path.exists(processed_dir):
@@ -437,9 +439,9 @@ def generate_audio_from_transcript(transcript_dir: str, config: Dict[str, Any] =
     
     tts_config = config.get("tts", {})
     if "voice_pack" not in tts_config:
-        tts_config["voice_pack"] = "bm_george"
+        tts_config["voice_pack"] = "bm_lewis"
     if "speed" not in tts_config:
-        tts_config["speed"] = 0.9
+        tts_config["speed"] = 0.8
     if "language" not in tts_config:
         tts_config["language"] = "b"  # British English
     
@@ -471,8 +473,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate audio from processed transcript")
     parser.add_argument("--transcript-dir", required=True, help="Directory containing the transcript")
     parser.add_argument("--config", help="Path to configuration file")
-    parser.add_argument("--voice", default="bm_george", help="Voice to use (default: bm_george)")
-    parser.add_argument("--speed", type=float, default=0.9, help="Speech speed (default: 0.9)")
+    parser.add_argument("--voice", default="bm_lewis", help="Voice to use (default: bm_lewis)")
+    parser.add_argument("--speed", type=float, default=0.8, help="Speech speed (default: 0.8)")
     
     args = parser.parse_args()
     
@@ -497,8 +499,8 @@ if __name__ == "__main__":
         result = generate_audio_from_transcript(args.transcript_dir, config)
         print(f"\nAudio generation completed:")
         print(f"  Output: {result['output_path']}")
-        print(f"  Voice: {result.get('voice_used', 'bm_george')}")
-        print(f"  Speed: {result.get('speed_factor', 0.9)}x")
+        print(f"  Voice: {result.get('voice_used', 'bm_lewis')}")
+        print(f"  Speed: {result.get('speed_factor', 0.8)}x")
         print(f"  Duration: {result['audio_duration_seconds']:.2f} seconds")
         print(f"  Processing time: {result['processing_time_seconds']:.2f} seconds")
     except Exception as e:

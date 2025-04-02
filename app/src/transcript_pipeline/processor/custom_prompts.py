@@ -26,7 +26,7 @@ def create_master_document_for_expansion_prompt(transcript_text, target_length, 
     # Calculate expansion ratio
     expansion_ratio = target_length / len(segment_text) if len(segment_text) > 0 else 0
     min_target_length = int(target_length)
-    max_target_length = int(target_length * 1.7)
+    max_target_length = int(target_length * 1.4)
     
     # Extract relevant portion of master document for this chapter if provided
     master_doc_extract = ""
