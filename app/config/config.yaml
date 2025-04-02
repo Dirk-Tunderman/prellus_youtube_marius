@@ -19,6 +19,9 @@ segmentation:
   speaker_change_weight: 5
   target_segment_size: 25000
   topic_change_weight: 4
+tts:
+  voice_pack: bm_lewis
+  speed: 0.8
 system_prompts:
   standard: 'You are an educational content editor who transforms video transcripts
     into engaging narratives.

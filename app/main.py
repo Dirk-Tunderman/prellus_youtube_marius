@@ -232,8 +232,8 @@ def process_transcript():
             config["ai"]["custom_prompt"] = combined_prompt
 
             # Add voice and speed to config
-            config["tts"]["voice_pack"] = voice
-            config["tts"]["speed"] = speed
+            config["ai"]["voice_pack"] = voice
+            config["ai"]["speed"] = speed
 
             # Also store structured prompt data
             config["ai"]["prompt_structure"] = prompt_data
