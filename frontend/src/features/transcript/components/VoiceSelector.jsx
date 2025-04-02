@@ -38,7 +38,7 @@ export function VoiceSelector() {
           <Slider
             id="speed-slider"
             min={0.5}
-            max={0.8}
+            max={1.0}
             step={0.1}
             value={[speed]}
             onValueChange={(values) => setSpeed(values[0])}
@@ -46,7 +46,7 @@ export function VoiceSelector() {
           />
           <div className="flex justify-between text-xs text-muted-foreground">
             <span>0.5</span>
-            <span>0.8</span>
+            <span>1.0</span>
           </div>
         </div>
       </CardContent>
