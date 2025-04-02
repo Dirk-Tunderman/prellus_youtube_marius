@@ -399,6 +399,8 @@ class ChunkedProcessor:
             else:
                 logger.warning("Not enough chapters found to trim the transcript")
         
+        else:
+            logger.info(f"No reduction is needed because lenght trasncipt {processed_transcript_length} is within the acceptable range {max_acceptable_length}")
         return processed_transcript
 
     def _parse_master_document(self, master_document: str) -> List[Dict[str, Any]]:
