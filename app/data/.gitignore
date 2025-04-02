@@ -1,0 +1,10 @@
+# Ignore all transcript data files
+transcripts/*/audio/*
+transcripts/*/processed/*
+transcripts/*/raw/*
+
+# Allow specific metadata files if needed
+# !transcripts/*/metadata.json
+
+# Ignore large processing logs
+*.log 

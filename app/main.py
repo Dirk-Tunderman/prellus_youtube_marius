@@ -37,7 +37,7 @@ app = Flask(__name__)
 CORS(app)
 
 # Ensure prompt storage directory exists
-PROMPT_STORAGE_DIR = os.path.join(project_root, "backend/data/stored_prompts")
+PROMPT_STORAGE_DIR = os.path.join(project_root, "app/data/stored_prompts")
 os.makedirs(PROMPT_STORAGE_DIR, exist_ok=True)
 
 
@@ -482,8 +482,7 @@ def get_projects():
     """Get a list of all transcript projects"""
     try:
         projects = []
-        transcripts_dir = os.path.join(project_root, "backend/data/transcripts")
-
+        transcripts_dir = os.path.join(project_root, "app/data/transcripts")
         # Ensure the directory exists
         if not os.path.exists(transcripts_dir):
             return jsonify([])
@@ -491,7 +490,7 @@ def get_projects():
         # List all directories in the transcripts folder
         for project_name in os.listdir(transcripts_dir):
             project_path = os.path.join(transcripts_dir, project_name)
-
+            print(f"Project path: {project_path}")
             # Skip non-directories and hidden folders
             if not os.path.isdir(project_path) or project_name.startswith("."):
                 continue
@@ -556,7 +555,7 @@ def get_transcript(project_id):
     try:
         transcript_path = os.path.join(
             project_root,
-            "backend/data/transcripts",
+            "app/data/transcripts",
             project_id,
             "processed",
             "narrative_transcript.txt",
@@ -581,7 +580,7 @@ def download_transcript(project_id):
     try:
         transcript_path = os.path.join(
             project_root,
-            "backend/data/transcripts",
+            "app/data/transcripts",
             project_id,
             "processed",
             "narrative_transcript.txt",
@@ -590,7 +589,7 @@ def download_transcript(project_id):
         if os.path.exists(transcript_path):
             # Get project name for better filename
             metadata_path = os.path.join(
-                project_root, "backend/data/transcripts", project_id, "metadata.json"
+                project_root, "app/data/transcripts", project_id, "metadata.json"
             )
 
             project_name = project_id
@@ -632,7 +631,7 @@ def download_audio(project_id, filename):
             return jsonify({"error": "Invalid filename"}), 400
 
         audio_path = os.path.join(
-            project_root, "backend/data/transcripts", project_id, "audio", filename
+            project_root, "app/data/transcripts", project_id, "audio", filename
         )
 
         if os.path.exists(audio_path) and filename.endswith(".wav"):
@@ -653,14 +652,13 @@ def download_audio(project_id, filename):
 @app.route("/api/projects/<project_id>", methods=["DELETE"])
 def delete_project(project_id):
     """Delete an entire project folder"""
+    print(f"Deleting project: {project_id}")
     try:
         # Security check to prevent directory traversal attacks
         if ".." in project_id or project_id.startswith("/"):
             return jsonify({"error": "Invalid project ID"}), 400
 
-        project_path = os.path.join(
-            project_root, "backend/data/transcripts", project_id
-        )
+        project_path = os.path.join(project_root, "app/data/transcripts", project_id)
 
         if os.path.exists(project_path) and os.path.isdir(project_path):
             # Delete the entire project directory

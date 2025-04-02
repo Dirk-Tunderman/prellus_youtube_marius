@@ -10,6 +10,9 @@ services:
       - "5001:5001"
     environment:
       - PYTHONUNBUFFERED=1
+    volumes:
+      - prellus_data:/app/data
+      - prellus_config:/app/config
     networks:
       - prellus_network
 
@@ -27,3 +30,9 @@ services:
 networks:
   prellus_network:
     name: prellus_network
+
+volumes:
+  prellus_data:
+    name: prellus_data
+  prellus_config:
+    name: prellus_config
