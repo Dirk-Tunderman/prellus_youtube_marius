@@ -287,9 +287,12 @@ class ChunkedProcessor:
             ai_processor = MagicMock()
             ai_processor.process_text.return_value = "This is a mock processed result."
 
+
         # Calculate scaling factor
         original_length = len(transcript_text)
         target_length = config.get("ai", {}).get("length_in_chars", original_length)
+
+
         scaling_factor = target_length / original_length if original_length > 0 else 1.0
 
         # Create master document
@@ -329,12 +332,13 @@ class ChunkedProcessor:
         # FINAL LENGTH CHECK: Check if the transcript is too long and trim if needed
         processed_transcript_length = len(processed_transcript)
         expected_length = config.get("ai", {}).get("length_in_chars", original_length)
+
         logger.info(f"Final transcript length: {processed_transcript_length} characters")
-        logger.info(f"Expected transcript length: {expected_length} characters")
+        logger.info(f"EXPECTED LENGHT: {expected_length} characters")
         
         # Calculate maximum acceptable length (expected length + 50,000 characters)
         max_acceptable_length = expected_length + 50000
-        logger.info(f"Maximum acceptable length: {max_acceptable_length} characters")
+        logger.info(f"MAXIMUM ACCEPTABLE LENGTH: {max_acceptable_length} characters")
         
         # Check if transcript needs trimming
         if processed_transcript_length > max_acceptable_length:
@@ -376,6 +380,9 @@ class ChunkedProcessor:
                     chapters_to_keep -= 1
                     removed_chapter_size = chapters[chapters_to_keep]['size']
                     trimmed_length -= removed_chapter_size
+                    #print the amount of characters removed
+                    print(f"Removed chapter size: {removed_chapter_size} characters")
+                    print(f"Trimmed length: {trimmed_length} characters")
                     logger.info(f"Reducing lenght")
                 
                 if chapters_to_keep < len(chapters):
@@ -384,10 +391,9 @@ class ChunkedProcessor:
                     final_length = len(trimmed_transcript)
                     
                     logger.info(f"Trimmed transcript")
-
                     
                     processed_transcript = trimmed_transcript
-                    
+            
                     # Save the trimmed transcript if output_dir is provided
                     if output_dir:
                         trimmed_path = os.path.join(output_dir, "trimmed_transcript.txt")
@@ -401,6 +407,9 @@ class ChunkedProcessor:
         
         else:
             logger.info(f"No reduction is needed because lenght trasncipt {processed_transcript_length} is within the acceptable range {max_acceptable_length}")
+
+        #print the amount of characer in trasncript
+        logger.info(f"Transcript length: {len(processed_transcript)} characters")
         return processed_transcript
 
     def _parse_master_document(self, master_document: str) -> List[Dict[str, Any]]:
