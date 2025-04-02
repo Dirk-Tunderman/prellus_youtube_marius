@@ -357,7 +357,7 @@ def generate_audio_from_transcript(transcript_dir: str, config: Dict[str, Any] =
     os.makedirs(audio_dir, exist_ok=True)
     
     #print the config
-    print(f"config: {config}")
+    print(f"config in audio creation: {config}")
     # Path to processed transcript
     processed_dir = os.path.join(transcript_dir, "processed")
     if not os.path.exists(processed_dir):
@@ -437,7 +437,8 @@ def generate_audio_from_transcript(transcript_dir: str, config: Dict[str, Any] =
     if "tts" not in config:
         config["tts"] = {}
     
-    tts_config = config.get("tts", {})
+    tts_config = config.get("ai", {})
+    print(f"tts_config before processing: {tts_config}")
     if "voice_pack" not in tts_config:
         tts_config["voice_pack"] = "bm_lewis"
     if "speed" not in tts_config:

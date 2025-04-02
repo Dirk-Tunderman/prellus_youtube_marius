@@ -179,10 +179,10 @@ def main():
     try:
         # Parse arguments
         args = parse_arguments()
-    
+        print(f"args: {args}")
         # Load configuration
         config = load_config(args.config)
-        
+        print(f"config in beginning: {config}")
         # Set log level from configuration
         log_level = getattr(logging, config["general"]["log_level"].upper())
         logger.setLevel(log_level)
