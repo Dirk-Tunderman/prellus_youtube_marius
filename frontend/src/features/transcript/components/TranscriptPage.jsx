@@ -1,8 +1,15 @@
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { useTranscriptContext } from "../context/TranscriptContext";
 import { TranscriptForm } from "./TranscriptForm";
+import { VoiceSelector } from "./VoiceSelector";
 import { PromptEditor } from "./PromptEditor";
 import { PromptSaveDialog } from "./PromptSaveDialog";
 import { PromptListDialog } from "./PromptListDialog";
@@ -36,7 +43,24 @@ export function TranscriptPage() {
         </TabsList>
 
         <TabsContent value="basic" className="space-y-4 pt-4">
-          <TranscriptForm />
+          <Accordion
+            type="multiple"
+            defaultValue={["video", "voice"]}
+            className="space-y-4"
+          >
+            <AccordionItem value="video">
+              <AccordionTrigger>Video Information</AccordionTrigger>
+              <AccordionContent>
+                <TranscriptForm />
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="voice">
+              <AccordionTrigger>Voice Settings</AccordionTrigger>
+              <AccordionContent>
+                <VoiceSelector />
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
 
           <div className="flex justify-between mt-6">
             <Button onClick={handleSubmit} disabled={transcript.isProcessing}>
