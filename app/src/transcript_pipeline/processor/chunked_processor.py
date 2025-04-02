@@ -1146,14 +1146,14 @@ class ChunkedProcessor:
 
             # Check if the expanded transcript is too long and needs to be trimmed
             if expanded_transcript_length > max_acceptable_length:
-                logger.warning(f"Transcript is too long by {expanded_transcript_length - max_acceptable_length} characters")
+                logger.warning(f"Transcript is too long reduce by {expanded_transcript_length - max_acceptable_length} characters")
                 
                 # Find chapter boundaries in the expanded transcript
                 chapter_pattern = re.compile(r'^Chapter \d+', re.MULTILINE)
                 chapter_matches = list(chapter_pattern.finditer(expanded_transcript))
                 
-                if len(chapter_matches) > 1:  # Only proceed if we have more than one chapter
-                    logger.info(f"Found {len(chapter_matches)} chapters in the transcript")
+                if len(chapter_matches) > 4:  # Only proceed if we have more than one chapter
+                    # logger.info(f"Found {len(chapter_matches)} chapters in the transcript")
                     
                     # Create a list of chapter positions and sizes
                     chapters = []
@@ -1179,19 +1179,19 @@ class ChunkedProcessor:
                         chapters_to_keep -= 1
                         removed_chapter_size = chapters[chapters_to_keep]['size']
                         trimmed_length -= removed_chapter_size
-                        logger.info(f"Removing Chapter {chapters_to_keep + 1} ({removed_chapter_size} chars)")
+                        # logger.info(f"Removing Chapter {chapters_to_keep + 1} ({removed_chapter_size} chars)")
                     
                     if chapters_to_keep < len(chapters):
                         # Reconstruct the transcript with only the chapters we're keeping
                         expanded_transcript = "".join([ch['content'] for ch in chapters[:chapters_to_keep]])
                         final_length = len(expanded_transcript)
                         
-                        logger.info(f"Trimmed transcript from {expanded_transcript_length} to {final_length} characters")
-                        logger.info(f"Removed {len(chapters) - chapters_to_keep} chapters")
+                        logger.info(f"reduced transcript lenght from {expanded_transcript_length} to {final_length} characters")
+                        # logger.info(f"Removed {len(chapters) - chapters_to_keep} chapters")
                     else:
-                        logger.warning("Could not trim transcript by removing whole chapters.")
+                        logger.warning("Could not trim transcript")
                 else:
-                    logger.warning("Not enough chapters found to trim the transcript")
+                    logger.warning("Negletable")
 
             # Calculate the ratio of the expanded transcript to the expected length
             expanded_transcript_length = len(expanded_transcript)  # Recalculate after possible trimming

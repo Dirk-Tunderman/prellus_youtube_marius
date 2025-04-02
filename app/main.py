@@ -161,7 +161,9 @@ def process_transcript():
         title = data.get("title", "")  # Extract title from request
         prompt_data = data.get("promptData", {})
         duration = data.get("duration", "Not provided")
-
+        voice = data.get("voice", "Not provided")
+        speed = data.get("speed", "Not provided")
+        print(f"\n\ndata in da beginnenning: {data}\n\n")
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
         print("\n===== RECEIVED TRANSCRIPT PROCESSING REQUEST =====")
@@ -229,8 +231,13 @@ def process_transcript():
             # Add combined prompt as custom_prompt
             config["ai"]["custom_prompt"] = combined_prompt
 
+            # Add voice and speed to config
+            config["tts"]["voice_pack"] = voice
+            config["tts"]["speed"] = speed
+
             # Also store structured prompt data
             config["ai"]["prompt_structure"] = prompt_data
+
 
             print("Injected structured prompt data into config")
 
