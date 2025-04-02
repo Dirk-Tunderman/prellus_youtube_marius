@@ -8,8 +8,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Copy, Download, ArrowLeft } from "lucide-react";
+import { Copy, Download, ArrowLeft, FileText, Hash, Clock } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { Separator } from "@/components/ui/separator";
 
 export function TranscriptViewer() {
   const {
@@ -17,7 +19,6 @@ export function TranscriptViewer() {
     transcript,
     isLoadingTranscript,
     setShowTranscript,
-    handleDownloadTranscript,
     copyTranscript,
     getProjectDisplayName,
   } = useProjectContext();
@@ -41,15 +42,25 @@ export function TranscriptViewer() {
       <CardHeader className="pb-2">
         <div className="flex justify-between items-center">
           <CardTitle>{getProjectDisplayName(selectedProject)}</CardTitle>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowTranscript(false)}
-            className="lg:hidden"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to List
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onCopyTranscript}
+              disabled={isLoadingTranscript || !transcript?.text}
+              title="Copy transcript"
+            >
+              <Copy className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowTranscript(false)}
+              title="Close transcript"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
         {selectedProject.url && (
           <div className="text-sm">
@@ -63,7 +74,65 @@ export function TranscriptViewer() {
             </a>
           </div>
         )}
+
+        {!isLoadingTranscript && transcript?.text && (
+          <div className="flex items-center gap-4 mt-4 text-lg flex-wrap">
+            <Badge
+              variant="outline"
+              className="py-1.5 px-3 bg-gray-50 border-gray-200"
+            >
+              <Hash className="mr-2 h-5 w-5 text-gray-500" />
+              <span className="font-semibold">
+                {transcript.text.length.toLocaleString()}
+              </span>
+              <span className="ml-1 text-gray-500">characters</span>
+            </Badge>
+            <Badge
+              variant="outline"
+              className="py-1.5 px-3 bg-gray-50 border-gray-200"
+            >
+              <FileText className="mr-2 h-5 w-5 text-gray-500" />
+              <span className="font-semibold">
+                {transcript.text
+                  .split(/\s+/)
+                  .filter(Boolean)
+                  .length.toLocaleString()}
+              </span>
+              <span className="ml-1 text-gray-500">words</span>
+            </Badge>
+            {selectedProject.date && (
+              <Badge
+                variant="outline"
+                className="py-1.5 px-3 bg-gray-50 border-gray-200"
+              >
+                <Clock className="mr-2 h-5 w-5 text-gray-500" />
+                <span className="font-semibold">
+                  {(() => {
+                    try {
+                      // Parse the date string which is in format {'start': 0.14, 'end': 98.76}
+                      const dateObj = JSON.parse(
+                        selectedProject.date.replace(/'/g, '"')
+                      );
+                      const durationSeconds = dateObj.end;
+
+                      // Format duration as minutes:seconds
+                      const minutes = Math.floor(durationSeconds / 60);
+                      const seconds = Math.floor(durationSeconds % 60);
+                      return `${minutes}:${seconds
+                        .toString()
+                        .padStart(2, "0")}`;
+                    } catch (e) {
+                      return "Unknown";
+                    }
+                  })()}
+                </span>
+                <span className="ml-1 text-gray-500">duration</span>
+              </Badge>
+            )}
+          </div>
+        )}
       </CardHeader>
+      <Separator className="my-2" />
       <CardContent className="flex-grow overflow-hidden">
         {isLoadingTranscript ? (
           <div className="space-y-2">
@@ -81,37 +150,6 @@ export function TranscriptViewer() {
           </div>
         )}
       </CardContent>
-      <CardFooter className="pt-4 flex justify-between">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setShowTranscript(false)}
-          className="hidden lg:flex"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to List
-        </Button>
-        <div className="flex space-x-2 ml-auto">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onCopyTranscript}
-            disabled={isLoadingTranscript || !transcript?.text}
-          >
-            <Copy className="mr-2 h-4 w-4" />
-            Copy
-          </Button>
-          <Button
-            variant="default"
-            size="sm"
-            onClick={() => handleDownloadTranscript(selectedProject.id)}
-            disabled={isLoadingTranscript || !transcript?.text}
-          >
-            <Download className="mr-2 h-4 w-4" />
-            Download
-          </Button>
-        </div>
-      </CardFooter>
     </Card>
   );
 }

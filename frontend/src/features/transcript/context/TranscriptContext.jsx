@@ -17,6 +17,8 @@ export function TranscriptProvider({ children }) {
     title: "",
     duration: 30,
     promptName: "",
+    voice: "af_bella", // Default to a high-quality American female voice
+    speed: 0.7, // Default speed in the middle of the range
     promptData: {
       yourRole: "",
       scriptStructure: "",
@@ -37,6 +39,8 @@ export function TranscriptProvider({ children }) {
   const title = formState.title || "";
   const duration = formState.duration || "";
   const promptName = formState.promptName || "";
+  const voice = formState.voice || "af_bella";
+  const speed = formState.speed || 0.7;
   const promptData = formState.promptData || {
     yourRole: "",
     scriptStructure: "",
@@ -60,6 +64,14 @@ export function TranscriptProvider({ children }) {
 
   const setPromptName = (newPromptName) => {
     setFormState((prev) => ({ ...prev, promptName: newPromptName }));
+  };
+
+  const setVoice = (newVoice) => {
+    setFormState((prev) => ({ ...prev, voice: newVoice }));
+  };
+
+  const setSpeed = (newSpeed) => {
+    setFormState((prev) => ({ ...prev, speed: newSpeed }));
   };
 
   // Auto-populate title when URL changes
@@ -90,6 +102,8 @@ export function TranscriptProvider({ children }) {
       title: "",
       duration: "",
       promptName: "",
+      voice: "af_bella",
+      speed: 0.7,
       promptData: {
         yourRole: "",
         scriptStructure: "",
@@ -129,6 +143,8 @@ export function TranscriptProvider({ children }) {
       title,
       promptData,
       duration: durationValue,
+      voice,
+      speed,
     });
 
     return { success: true, error: null };
@@ -150,6 +166,8 @@ export function TranscriptProvider({ children }) {
       promptData,
       duration: durationValue,
       modelId,
+      voice,
+      speed,
     });
 
     return { success: true, error: null };
@@ -206,6 +224,10 @@ export function TranscriptProvider({ children }) {
     setTitle,
     duration,
     setDuration,
+    voice,
+    setVoice,
+    speed,
+    setSpeed,
     promptData,
     handlePromptChange,
 
