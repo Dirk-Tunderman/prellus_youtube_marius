@@ -15,10 +15,10 @@ export function TranscriptProvider({ children }) {
   const [formState, setFormState] = useState({
     url: "",
     title: "",
-    duration: 30,
+    duration: 0,
     promptName: "",
-    voice: "af_bella", // Default to a high-quality American female voice
-    speed: 0.7, // Default speed in the middle of the range
+    voice: "bm_lewis", // Default to a high-quality British male voice
+    speed: 0.8, // Default speed in the middle of the range
     promptData: {
       yourRole: "",
       scriptStructure: "",
@@ -32,15 +32,16 @@ export function TranscriptProvider({ children }) {
   const { transcripts, processTranscript, processWithModel, isProcessing } =
     useTranscriptData();
 
-  const { prompts, savePrompt, getPrompt, isSaving } = usePromptData();
+  const { prompts, savePrompt, getPrompt, deletePrompt, isSaving, isDeleting } =
+    usePromptData();
 
   // Extract form state values for convenience
   const url = formState.url || "";
   const title = formState.title || "";
   const duration = formState.duration || "";
   const promptName = formState.promptName || "";
-  const voice = formState.voice || "af_bella";
-  const speed = formState.speed || 0.7;
+  const voice = formState.voice || "bm_lewis";
+  const speed = formState.speed || 0.8;
   const promptData = formState.promptData || {
     yourRole: "",
     scriptStructure: "",
@@ -102,8 +103,8 @@ export function TranscriptProvider({ children }) {
       title: "",
       duration: "",
       promptName: "",
-      voice: "af_bella",
-      speed: 0.7,
+      voice: "bm_lewis",
+      speed: 0.8,
       promptData: {
         yourRole: "",
         scriptStructure: "",
@@ -188,6 +189,12 @@ export function TranscriptProvider({ children }) {
     return { success: true, error: null };
   };
 
+  // Delete prompt template
+  const handleDeletePrompt = (promptId) => {
+    deletePrompt(promptId);
+    return { success: true, error: null };
+  };
+
   // Load prompt template
   const handleLoadPrompt = async (promptId) => {
     try {
@@ -245,12 +252,14 @@ export function TranscriptProvider({ children }) {
     handleProcessWithModel,
     handleSavePrompt,
     handleLoadPrompt,
+    handleDeletePrompt,
     resetForm,
     validateForm,
 
     // Operation states
     isProcessing,
     isSaving,
+    isDeleting,
   };
 
   return (
