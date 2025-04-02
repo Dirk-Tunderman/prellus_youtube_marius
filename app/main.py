@@ -238,7 +238,6 @@ def process_transcript():
             # Also store structured prompt data
             config["ai"]["prompt_structure"] = prompt_data
 
-
             print("Injected structured prompt data into config")
 
         except Exception as config_error:
