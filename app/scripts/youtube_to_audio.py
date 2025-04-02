@@ -125,6 +125,7 @@ def youtube_to_audio(
         transcript_result = fetch_transcript(
             youtube_url, config.get("transcript", {}), json_data
         )
+
         video_dir = transcript_result["video_dir"]
         logger.info(f"Transcript fetched and stored in {video_dir}")
 
