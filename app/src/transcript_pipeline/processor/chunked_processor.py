@@ -342,8 +342,9 @@ class ChunkedProcessor:
         logger.info(f"MAXIMUM ACCEPTABLE LENGTH: {max_acceptable_length} characters")
         
         # Check if transcript needs trimming
-        if processed_transcript_length > max_acceptable_length:
-            logger.warning(f"Transcript is too long by {processed_transcript_length - max_acceptable_length} characters")
+        charater_amount_goal = config["ai"]["length"] * 900
+        if processed_transcript_length > charater_amount_goal:
+            logger.warning(f"Transcript is too long by {processed_transcript_length - charater_amount_goal} characters")
             
             # Find chapter boundaries in the transcript
             chapter_pattern = re.compile(r'^Chapter \d+', re.MULTILINE)
@@ -377,12 +378,12 @@ class ChunkedProcessor:
                 trimmed_length = processed_transcript_length
                 
                 # Remove chapters from the end until we're within the max acceptable length
-                while trimmed_length > max_acceptable_length and chapters_to_keep > 1:
+                while trimmed_length > charater_amount_goal and chapters_to_keep > 1:
                     chapters_to_keep -= 1
                     removed_chapter_size = chapters[chapters_to_keep]['size']
                     trimmed_length -= removed_chapter_size
                     #print the amount of characters removed
-                    print(f"Removed chapter size: {removed_chapter_size} characters")
+
                     print(f"Trimmed length: {trimmed_length} characters")
                     logger.info(f"Reducing lenght")
                 
@@ -869,7 +870,7 @@ class ChunkedProcessor:
         model = config.get("ai", {}).get("model")
 
         # Calculate how many output chapters we need based on target length
-        max_chapter_size = 15000  # Max API output size
+        max_chapter_size = 10000  # Max API output size
         required_chapters = math.ceil(target_length / max_chapter_size)
 
         # Generate master document with detailed topic outlines
@@ -891,7 +892,7 @@ class ChunkedProcessor:
 
             # Create a detailed chapter outline
             master_doc += f"## Chapter {i+1}: {segment_text[:50]}... ({start_char}-{end_char})\n\n"
-            master_doc += f"This segment contains approximately {len(segment_text)} characters and should be expanded to at least {max_chapter_size} characters.\n\n"
+            master_doc += f"This segment contains approximately {len(segment_text)} characters and should be expanded to at least {max_chapter_size + 5000} characters.\n\n"
 
             # Generate topic outline for this segment using an API call
             topic_prompt = f"""
@@ -1040,7 +1041,7 @@ class ChunkedProcessor:
         )
 
         # Calculate number of chapters needed to reach target length
-        max_chapter_size = 12000  # API output limit per call
+        max_chapter_size = 10000  # API output limit per call
         required_chapters = math.ceil(target_length / max_chapter_size)
 
         # Create segment boundaries for the original transcript
