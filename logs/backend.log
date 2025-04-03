@@ -1,4 +1,29 @@
-Traceback (most recent call last):
-  File "/Users/verdant/prellus_youtube_marius/backend/port5001_server.py", line 11, in <module>
-    from flask_cors import CORS
-ModuleNotFoundError: No module named 'flask_cors'
+
+========== YouTube Transcript Processor API ==========
+STARTED AT: 2025-04-03 16:08:43
+Server running at: http://localhost:5001
+Test the API at: http://localhost:5001/api/test
+======================================================
+
+ * Serving Flask app 'main'
+ * Debug mode: on
+2025-04-03 16:08:43,662 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5001
+ * Running on http://10.14.0.2:5001
+2025-04-03 16:08:43,662 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-04-03 16:08:43,663 - werkzeug - INFO -  * Restarting with stat
+
+========== YouTube Transcript Processor API ==========
+STARTED AT: 2025-04-03 16:09:04
+Server running at: http://localhost:5001
+Test the API at: http://localhost:5001/api/test
+======================================================
+
+2025-04-03 16:09:04,743 - werkzeug - WARNING -  * Debugger is active!
+2025-04-03 16:09:04,755 - werkzeug - INFO -  * Debugger PIN: 797-589-508
+Getting transcript list
+Project path: /Users/verdant/prellus_youtube_marius/app/data/transcripts/ZSt9tm3RoUU_20250401_193839
+2025-04-03 16:22:44,518 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 16:22:44] "GET /api/transcripts HTTP/1.1" 200 -
+2025-04-03 16:22:44,520 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 16:22:44] "GET /api/prompts HTTP/1.1" 200 -
+2025-04-03 16:22:44,520 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 16:22:44] "GET /api/projects HTTP/1.1" 200 -

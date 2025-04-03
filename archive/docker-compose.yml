@@ -1,0 +1,38 @@
+version: "3.8"
+
+services:
+  backend:
+    image: prellus_backend:latest
+    platform: linux/amd64
+    pull_policy: never
+    container_name: prellus_backend_container
+    ports:
+      - "5001:5001"
+    environment:
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - prellus_data:/app/data
+      - prellus_config:/app/config
+    networks:
+      - prellus_network
+
+  frontend:
+    image: prellus_frontend:latest
+    pull_policy: never
+    container_name: prellus_frontend_container
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - prellus_network
+
+networks:
+  prellus_network:
+    name: prellus_network
+
+volumes:
+  prellus_data:
+    name: prellus_data
+  prellus_config:
+    name: prellus_config
