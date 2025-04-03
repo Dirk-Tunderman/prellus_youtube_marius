@@ -100,35 +100,6 @@ export function TranscriptViewer() {
               </span>
               <span className="ml-1 text-gray-500">words</span>
             </Badge>
-            {selectedProject.date && (
-              <Badge
-                variant="outline"
-                className="py-1.5 px-3 bg-gray-50 border-gray-200"
-              >
-                <Clock className="mr-2 h-5 w-5 text-gray-500" />
-                <span className="font-semibold">
-                  {(() => {
-                    try {
-                      // Parse the date string which is in format {'start': 0.14, 'end': 98.76}
-                      const dateObj = JSON.parse(
-                        selectedProject.date.replace(/'/g, '"')
-                      );
-                      const durationSeconds = dateObj.end;
-
-                      // Format duration as minutes:seconds
-                      const minutes = Math.floor(durationSeconds / 60);
-                      const seconds = Math.floor(durationSeconds % 60);
-                      return `${minutes}:${seconds
-                        .toString()
-                        .padStart(2, "0")}`;
-                    } catch (e) {
-                      return "Unknown";
-                    }
-                  })()}
-                </span>
-                <span className="ml-1 text-gray-500">duration</span>
-              </Badge>
-            )}
           </div>
         )}
       </CardHeader>

@@ -8,16 +8,12 @@ Features:
 """
 
 from flask_cors import CORS
-import sys
-import datetime
-import os
-import uuid
-import yaml
-import json
+import sys, datetime, os, uuid, yaml, json, pathlib, flask, shutil, re
 from pathlib import Path
 from flask import Flask, request, jsonify, send_file
-import shutil
-import re
+
+import sentry_sdk
+from sentry_sdk.integrations.flask import FlaskIntegration
 
 
 # Add the project root directory to the Python path
@@ -31,6 +27,12 @@ from scripts.youtube_to_audio import youtube_to_audio, load_config
 sys.stdout.reconfigure(line_buffering=True)
 # If using Python < 3.9, use this instead:
 # sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
+
+
+sentry_sdk.init(
+    dsn="https://f46e5bc7960c49eab9e5c5730de17ed3@app.glitchtip.com/10862",
+    integrations=[FlaskIntegration()],
+)
 
 app = Flask(__name__)
 # Enable CORS for all routes
@@ -124,6 +126,11 @@ def get_all_prompts():
     # Sort by date (newest first)
     prompts.sort(key=lambda x: x.get("date", ""), reverse=True)
     return prompts
+
+
+@app.route("/debug-glitchtip")
+def trigger_error():
+    division_by_zero = 1 / 0
 
 
 def get_prompt_by_id(unique_id):
@@ -237,7 +244,6 @@ def process_transcript():
 
             # Also store structured prompt data
             config["ai"]["prompt_structure"] = prompt_data
-
 
             print("Injected structured prompt data into config")
 
