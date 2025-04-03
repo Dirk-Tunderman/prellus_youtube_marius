@@ -342,7 +342,7 @@ class ChunkedProcessor:
         logger.info(f"MAXIMUM ACCEPTABLE LENGTH: {max_acceptable_length} characters")
         
         # Check if transcript needs trimming
-        charater_amount_goal = config["ai"]["length"] * 900
+        charater_amount_goal = config["ai"]["length"] * 1040
         if processed_transcript_length > charater_amount_goal:
             logger.warning(f"Transcript is too long by {processed_transcript_length - charater_amount_goal} characters")
             
@@ -412,8 +412,143 @@ class ChunkedProcessor:
 
         #print the amount of characer in trasncript
         logger.info(f"Transcript length: {len(processed_transcript)} characters")
-        return processed_transcript
 
+        #process final chapter
+        return_transcript = self._process_final_chapter(processed_transcript, config)
+
+
+        return return_transcript
+
+
+
+    def _process_final_chapter(self, processed_transcript: str, config: Dict[str, Any]) -> str:
+            """
+            Process the final chapter of the transcript.
+
+            Args:
+                processed_transcript: The processed transcript text
+                config: Configuration dictionary including AI model settings
+
+            Returns:
+                The processed transcript with the final chapter appended
+            """
+            
+            final_chap_system_prompt = """
+            # FINAL CHAPTER GENERATION SYSTEM PROMPT
+
+            ## YOUR ROLE
+            You are an expert narrative writer tasked with crafting the final chapter of a larger work. Your job is to provide a satisfying conclusion that maintains continuity with the existing narrative while tying together key themes and plot elements.
+
+            ## OBJECTIVE
+            Create a compelling final chapter of approximately 10,000 characters (acceptable range: 8,000-12,000 characters) that provides closure to the story while maintaining the exact same writing style, tone, and thematic elements of the existing transcript.
+
+            ## CONTEXT AND APPROACH
+            - This is the FINAL CHAPTER of a multi-chapter narrative
+            - Your chapter must feel like a natural extension written by the same author
+            - End the story in a satisfying way that resolves major plot threads
+            - Maintain consistency with established characters, locations, and narrative elements
+            - Preserve all thematic elements and philosophical motifs from earlier chapters
+            - Analyze the pacing and arc of previous chapters to determine appropriate conclusion style
+
+            ## CHAPTER STRUCTURE REQUIREMENTS
+            1. Begin with a brief introduction that bridges from the previous chapter 
+            2. Include clear chapter heading (e.g., "Chapter X: Title") consistent with existing format
+            3. Develop the narrative through a clear progression of events
+            4. Build toward a climactic moment or revelation 
+            5. Provide a denouement that offers closure to the overall narrative
+            6. End with a memorable final passage that resonates with the themes of the work
+
+            ## STYLISTIC CONTINUITY GUIDELINES
+            - Match the exact paragraph length and structure patterns
+            - Replicate the sentence complexity and vocabulary level
+            - Maintain identical narrative voice (first-person, third-person, etc.)
+            - Continue any distinctive formatting patterns or structural elements
+            - Use the same balance of dialogue, description, and exposition
+            - Preserve any unique linguistic characteristics (metaphors, similes, specific terminology)
+            - Maintain the exact tone (philosophical, suspenseful, humorous, etc.)
+
+            ## NARRATIVE CONTINUITY CONSIDERATIONS
+            - Resolve plot threads without introducing new major conflicts
+            - Maintain consistent characterization for all characters
+            - Reference previous events, locations, and ideas from earlier chapters
+            - Avoid contradicting established facts or world-building elements
+            - Incorporate existing motifs and symbols consistently
+            - Ensure a logical progression of events from previous chapters
+
+            ## TECHNICAL REQUIREMENTS
+            - Output LENGTH: 10,000 characters (acceptable range: 8,000-12,000 characters)
+            - DO NOT exceed 12,000 characters under any circumstances
+            - EXTREMELY IMPORTANT: Format with EXACT same structure as previous chapters:
+            * Begin with "Chapter {number}: {title}" followed by ONE newline
+            * Then add a second empty newline
+            * Then start the content of the chapter
+            * EACH SENTENCE must be followed by a newline, just like in the input text
+            * Do not include paragraph indentation unless present in the original
+            - CRITICALLY IMPORTANT: ONLY OUTPUT THE FINAL CHAPTER TEXT, DO NOT REPEAT ANY PART OF THE INPUT TRANSCRIPT
+            - Format all text with the same spacing patterns, paragraph breaks, and line breaks as seen in previous chapters
+
+            ## FINAL CHECK
+            Before submitting your chapter, verify:
+            1. CHARACTER COUNT is approximately 10,000 (between 8,000-12,000)
+            2. STYLE and TONE perfectly match the existing narrative
+            3. PLOT elements are resolved satisfactorily
+            4. No NEW major conflicts or characters are introduced
+            5. The ending provides appropriate CLOSURE to the overall narrative
+            6. FORMATTING is EXACTLY as specified:
+            - "Chapter X: Title" followed by ONE newline
+            - Then an EMPTY line (second newline)
+            - Then the content begins
+            - EACH SENTENCE ends with a newline character
+            - All spacing and paragraph breaks match the input style
+
+            ## CRITICAL FINAL INSTRUCTIONS
+            - ONLY OUTPUT THE FINAL CHAPTER TEXT - do not include any part of the input transcript
+            - Do not preface your response with explanations or include any text before the chapter heading
+            - Do not include any meta-commentary after the chapter
+            - Start directly with "Chapter X: Title" and end with the final line of the chapter
+            - Verify that every sentence is followed by a newline as required
+
+            Remember, this chapter must feel like it was written by the exact same author, following the identical formatting patterns and writing style.
+            """
+
+            # Log that we're generating the final chapter
+            logger.info("Generating final chapter for the transcript")
+
+            try:
+                # Generate the final chapter using the LLM
+                final_chapter = process_llm(
+                    context=processed_transcript,
+                    system_prompt=final_chap_system_prompt,
+                    model=config.get("ai", {}).get("model"),
+                    max_tokens=4096,
+                    temperature=0.7,
+                )
+                
+                # Log successful generation and character count
+                logger.info(f"Final chapter generated successfully: {len(final_chapter)} characters")
+                
+                # Save the final chapter if output_dir is provided
+                if self.output_dir:
+                    final_chapter_path = os.path.join(self.output_dir, "final_chapter.txt")
+                    with open(final_chapter_path, "w", encoding="utf-8") as f:
+                        f.write(final_chapter)
+                    logger.info(f"Saved final chapter to {final_chapter_path}")
+                
+                # Add two newlines before appending the final chapter to the transcript
+                full_transcript = processed_transcript + "\n\n" + final_chapter
+                
+                # Log the completed transcript length
+                logger.info(f"Complete transcript with final chapter: {len(full_transcript)} characters")
+                
+                return full_transcript
+                
+            except Exception as e:
+                # Log error and return the original transcript if final chapter generation fails
+                logger.error(f"Error generating final chapter: {e}")
+                logger.warning("Returning transcript without final chapter due to error")
+                return processed_transcript
+
+        
     def _parse_master_document(self, master_document: str) -> List[Dict[str, Any]]:
         """
         Parse the master document to extract chapter information.
@@ -1155,7 +1290,7 @@ class ChunkedProcessor:
                         retries += 1
                         continue
 
-                    if output_length > max_target_length:
+                    if output_length > 26000:
                         logger.warning(
                             f"Chapter {chapter_num} is too long ({output_length} vs. max {max_target_length}). Retrying."
                         )
@@ -1616,7 +1751,7 @@ class ChunkedProcessor:
                         continue
 
                     # Only enforce maximum length for non-last chunks
-                    if not is_last_chunk and output_length > max_target_length:
+                    if not is_last_chunk and output_length > 26000:
                         logger.warning(
                             f"Processed chunk {i+1} is too long ({output_length} chars vs target max {max_target_length}). Retrying."
                         )
@@ -1981,7 +2116,7 @@ class ChunkedProcessor:
 
                     # Only enforce maximum length for reasonably sized inputs and NOT for the last chunk
                     # Last chunk can be any size, so we skip maximum length validation for it
-                    if not is_last_chunk and output_length > max_target_length:
+                    if not is_last_chunk and output_length > 26000:
                         logger.warning(
                             f"Processed chunk {i+1} is too long ({output_length} chars vs expected max {max_target_length}). Retrying."
                         )

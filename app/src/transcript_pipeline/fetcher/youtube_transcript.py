@@ -11,6 +11,7 @@ from the Video Compilation Pipeline.
 
 import logging, re
 from typing import Dict, List, Any, Optional
+from datetime import datetime
 
 # Import the YouTube Transcript API
 from youtube_transcript_api import (
@@ -191,11 +192,19 @@ class YouTubeTranscriptFetcher:
         )
 
         # TODO: Fetch additional metadata (title, channel, etc.) using a library like pytube
+        
+        # Format current date for frontend display
+        current_datetime = datetime.now()
+        day = current_datetime.day
+        # Add comma after the day
+        formatted_date = current_datetime.strftime(f"%B {day}, %Y %H:%M")
 
         return {
             "metadata": {
                 "video_id": video_id,
                 "video_url": f"https://www.youtube.com/watch?v={video_id}",
+                "fetch_date": current_datetime.isoformat(),
+                "date": formatted_date,
                 "timestamp": {
                     "start": (
                         cleaned_transcript[0]["start"] if cleaned_transcript else 0
