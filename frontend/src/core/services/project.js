@@ -17,6 +17,17 @@ export const projectService = {
     return apiRequest(async () => {
       const response = await api.get("/projects");
       logApiOperation("getAllProjects", "/projects", response.data);
+
+      // Debug each project's date field
+      if (response.data && Array.isArray(response.data)) {
+        response.data.forEach((project, index) => {
+          console.log(
+            `[projectService] Project ${index} (${project.id}) date:`,
+            project.date
+          );
+        });
+      }
+
       return response;
     });
   },
