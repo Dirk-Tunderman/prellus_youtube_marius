@@ -1,7 +1,7 @@
 ai:
   max_retries: 3
   max_tokens: 8192
-  model: gemini-2.0-flash-lite
+  model: gemini-2.0-flash
   retry_delay: 2
   temperature: 0.7
 chunked_processing:
@@ -19,9 +19,6 @@ segmentation:
   speaker_change_weight: 5
   target_segment_size: 25000
   topic_change_weight: 4
-tts:
-  voice_pack: bm_lewis
-  speed: 0.8
 system_prompts:
   standard: 'You are an educational content editor who transforms video transcripts
     into engaging narratives.
@@ -52,3 +49,6 @@ system_prompts:
 
     Your output should read as a cohesive, educational narrative - as if it were written,
     not spoken. '
+tts:
+  speed: 0.8
+  voice_pack: bm_lewis
