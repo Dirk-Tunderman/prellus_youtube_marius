@@ -53,7 +53,9 @@ htmlcov/
 # Logs and databases
 *.log
 *.sqlite
+app/config/*
 
 # Environment variables
 .env
 !.env.example 
+
