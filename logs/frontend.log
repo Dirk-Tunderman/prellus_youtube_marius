@@ -1,13 +1,17 @@
 
-> transcript-automation-frontend@0.1.0 start
-> react-scripts start
+> temp_vite_v3@0.0.0 dev
+> vite
 
 
-✘ node v23.9.0, and webpack v5.98.0 are not yet supported in the Community edition of Console Ninja.
+✘ node v23.9.0, and vite v6.2.4 are not yet supported in the Community edition of Console Ninja.
 We are working hard on it for you https://tinyurl.com/3h9mtwra.
 
 Estimated release dates:
-  - Community users: around 26th April, 2025 (subject to team availability)
+  - Community users: around 31st May, 2025 (subject to team availability)
   - PRO users:       priority access is available now
 
-Something is already running on port 3000.
+
+  VITE v6.2.4  ready in 272 ms
+
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: use --host to expose

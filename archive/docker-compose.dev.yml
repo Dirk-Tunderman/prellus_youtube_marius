@@ -1,0 +1,18 @@
+version: "3.8"
+
+services:
+  backend:
+    volumes:
+      - ./app:/app
+    # Enable reload mode for the backend
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+
+  frontend:
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules  # This prevents node_modules from being overwritten
+    # Ensure development mode
+    environment:
+      - NODE_ENV=development
