@@ -235,7 +235,7 @@ class ChunkedProcessor:
         """
         self.chunk_size = config.get("chunk_size", 15000)
         self.max_retries = config.get("max_retries", 3)
-        self.min_output_length = config.get("min_output_length", 13000)
+        self.min_output_length = config.get("min_output_length", 10000)
         self.max_output_length = config.get("max_output_length", 20000)
         self.master_doc_max_size = config.get("master_doc_max_size", 2000000)
 
@@ -244,6 +244,7 @@ class ChunkedProcessor:
             "use_chapter_aligned_chunking", True
         )
         self.max_chapter_chunk_size = config.get("max_chapter_chunk_size", 20000)
+
 
         self.output_dir = None  # Will be set in process() method
 
@@ -308,26 +309,26 @@ class ChunkedProcessor:
             logger.info(f"Saved master document to {master_doc_path}")
 
         # Choose processing approach based on scaling factor
-        if scaling_factor > 1.0:
-            # Use expansion chapters approach for extreme expansion
-            logger.info(
-                f"Using expansion chapters approach for high scaling factor ({scaling_factor:.2f}x)"
-            )
-            processed_transcript = self._process_with_expansion_chapters(
-                transcript_text, master_document, ai_processor, config
-            )
-        elif self.use_chapter_aligned_chunking:
-            # Use chapter-aligned chunking approach
-            logger.info("Using chapter-aligned chunking approach")
-            processed_transcript = self._process_with_chapter_aligned_chunks(
-                transcript_text, master_document, ai_processor, config
-            )
-        else:
-            # Use fixed-size chunking approach
-            logger.info("Using fixed-size chunking approach")
-            processed_transcript = self._process_chunks_with_continuity(
-                transcript_text, master_document, ai_processor, config
-            )
+
+        # Use expansion chapters approach for extreme expansion
+        logger.info(
+            f"Using expansion chapters approach for high scaling factor ({scaling_factor:.2f}x)"
+        )
+        processed_transcript = self._process_with_expansion_chapters(
+            transcript_text, master_document, ai_processor, config
+        )
+        # elif self.use_chapter_aligned_chunking:
+        #     # Use chapter-aligned chunking approach
+        #     logger.info("Using chapter-aligned chunking approach")
+        #     processed_transcript = self._process_with_chapter_aligned_chunks(
+        #         transcript_text, master_document, ai_processor, config
+        #     )
+        # else:
+        #     # Use fixed-size chunking approach
+        #     logger.info("Using fixed-size chunking approach")
+        #     processed_transcript = self._process_chunks_with_continuity(
+        #         transcript_text, master_document, ai_processor, config
+        #     )
 
         # FINAL LENGTH CHECK: Check if the transcript is too long and trim if needed
         processed_transcript_length = len(processed_transcript)
@@ -337,7 +338,7 @@ class ChunkedProcessor:
         logger.info(f"EXPECTED LENGHT: {expected_length} characters")
         
         # Calculate maximum acceptable length (expected length + 50,000 characters)
-        max_acceptable_length = expected_length + 50000
+        max_acceptable_length = expected_length + 10000
         logger.info(f"MAXIMUM ACCEPTABLE LENGTH: {max_acceptable_length} characters")
         
         # Check if transcript needs trimming
@@ -608,6 +609,7 @@ class ChunkedProcessor:
             return self._create_master_document_for_expansion(
                 transcript_text, target_length, ai_processor, config
             )
+        
         elif scaling_factor < 1.0:
             scaling_directive = "content condensation"
             scaling_action = "condense while preserving key information"
@@ -1014,7 +1016,7 @@ class ChunkedProcessor:
         # Import modules at function level to avoid scope issues
         import os
         import time
-        
+
         original_length = len(transcript_text)
         target_length = config.get("ai", {}).get("length_in_chars", original_length)
         scaling_factor = target_length / original_length if original_length > 0 else 1.0
@@ -1038,7 +1040,7 @@ class ChunkedProcessor:
         )
 
         # Calculate number of chapters needed to reach target length
-        max_chapter_size = 15000  # API output limit per call
+        max_chapter_size = 12000  # API output limit per call
         required_chapters = math.ceil(target_length / max_chapter_size)
 
         # Create segment boundaries for the original transcript
@@ -1139,7 +1141,7 @@ class ChunkedProcessor:
                         f"Generated Chapter {chapter_num}: {output_length} characters"
                     )
 
-                    min_target_length = int(max_chapter_size * 0.7)
+                    min_target_length = int(max_chapter_size * 0.5)
                     max_target_length = int(max_chapter_size * 1.7)
 
                     if output_length < min_target_length:

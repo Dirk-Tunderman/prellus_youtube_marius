@@ -151,7 +151,9 @@ def youtube_to_audio(
 
         # Convert duration minutes to character count
         reading_speed = 250  # words per minute
-        avg_chars_per_word = 3  # characters per word
+    
+        avg_chars_per_word = 5  # characters per word
+
         target_length = int(
             json_data.get("duration") * reading_speed * avg_chars_per_word
         )

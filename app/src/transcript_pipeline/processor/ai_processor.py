@@ -483,11 +483,11 @@ def process_transcript(video_dir: str, config: Optional[Dict[str, Any]] = None, 
         A dictionary with metadata about the processing
     """
     config = config or {}
-    
+
     # Set mock mode if requested
     if mock_mode:
         os.environ["MOCK_LLM_API"] = "true"
-    
+
     # Read the raw transcript
     raw_transcript_path = os.path.join(video_dir, "raw", "transcript.txt")
     if not os.path.exists(raw_transcript_path):
@@ -498,6 +498,7 @@ def process_transcript(video_dir: str, config: Optional[Dict[str, Any]] = None, 
     
 
     expected_transcript_length = config["ai"]["length_in_chars"]
+    print(f"expected_transcript_length: {expected_transcript_length}")
     # Determine whether to use standard or chunked processing
     large_transcript_threshold = config.get("large_transcript_threshold", 15000)
     is_large_transcript = expected_transcript_length > large_transcript_threshold
@@ -518,7 +519,7 @@ def process_transcript(video_dir: str, config: Optional[Dict[str, Any]] = None, 
             mock_mode=mock_mode,
             output_dir=processed_dir
         )
-        
+    
         # Calculate the number of chunks based on chunk size
         chunk_size = config.get("chunk_size", 20000)
         num_chunks = math.ceil(len(transcript_text) / chunk_size)
