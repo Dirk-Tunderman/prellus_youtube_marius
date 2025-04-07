@@ -127,7 +127,7 @@ This task requires significant expansion of the original text. Consider:
 1. Count the exact number of characters in your response
 2. Verify it is between {min_target_length} and {max_target_length} characters OR at least {min_target_length % 4} Words.
 3. If too short: Add more descriptive details to reach target length
-4. If too long: Trim less essential details while preserving core content
+4. If too long:  less essential details while preserving core content
 
 
 ## IF YOU ARE HAVING TROUBLE WITH THE TARGET LENGTH:
