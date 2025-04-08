@@ -245,7 +245,6 @@ class ChunkedProcessor:
         )
         self.max_chapter_chunk_size = config.get("max_chapter_chunk_size", 20000)
 
-
         self.output_dir = None  # Will be set in process() method
 
         logger.info(
@@ -288,11 +287,9 @@ class ChunkedProcessor:
             ai_processor = MagicMock()
             ai_processor.process_text.return_value = "This is a mock processed result."
 
-
         # Calculate scaling factor
         original_length = len(transcript_text)
         target_length = config.get("ai", {}).get("length_in_chars", original_length)
-
 
         scaling_factor = target_length / original_length if original_length > 0 else 1.0
 
@@ -309,20 +306,104 @@ class ChunkedProcessor:
             logger.info(f"Saved master document to {master_doc_path}")
 
         # Choose processing approach based on scaling factor
-        if scaling_factor > 1.0:
-            # Use expansion chapters approach for extreme expansion
-            logger.info(
-                f"Using expansion chapters approach for high scaling factor ({scaling_factor:.2f}x)"
-            )
-            processed_transcript = self._process_with_expansion_chapters(
-                transcript_text, master_document, ai_processor, config
-            )
-        elif self.use_chapter_aligned_chunking:
-            # Use chapter-aligned chunking approach
-            logger.info("Using chapter-aligned chunking approach")
-            processed_transcript = self._process_with_chapter_aligned_chunks(
-                transcript_text, master_document, ai_processor, config
-            )
+
+        # Use expansion chapters approach for extreme expansion
+        logger.info(
+            f"Using expansion chapters approach for high scaling factor ({scaling_factor:.2f}x)"
+        )
+        processed_transcript = self._process_with_expansion_chapters(
+            transcript_text, master_document, ai_processor, config
+        )
+        # elif self.use_chapter_aligned_chunking:
+        #     # Use chapter-aligned chunking approach
+        #     logger.info("Using chapter-aligned chunking approach")
+        #     processed_transcript = self._process_with_chapter_aligned_chunks(
+        #         transcript_text, master_document, ai_processor, config
+        #     )
+        # else:
+        #     # Use fixed-size chunking approach
+        #     logger.info("Using fixed-size chunking approach")
+        #     processed_transcript = self._process_chunks_with_continuity(
+        #         transcript_text, master_document, ai_processor, config
+        #     )
+
+        # FINAL LENGTH CHECK: Check if the transcript is too long and trim if needed
+        processed_transcript_length = len(processed_transcript)
+        expected_length = config.get("ai", {}).get("length_in_chars", original_length)
+
+        logger.info(f"Final transcript length: {processed_transcript_length} characters")
+        logger.info(f"EXPECTED LENGHT: {expected_length} characters")
+
+        # Calculate maximum acceptable length (expected length + 50,000 characters)
+        max_acceptable_length = expected_length + 10000
+        logger.info(f"MAXIMUM ACCEPTABLE LENGTH: {max_acceptable_length} characters")
+
+        # Check if transcript needs trimming
+        charater_amount_goal = config["ai"]["length"] * 820
+        if processed_transcript_length > charater_amount_goal:
+            logger.warning(f"Transcript is too long by {processed_transcript_length - charater_amount_goal} characters")
+
+            # Find chapter boundaries in the transcript
+            chapter_pattern = re.compile(r'^Chapter \d+', re.MULTILINE)
+            chapter_matches = list(chapter_pattern.finditer(processed_transcript))
+
+            if len(chapter_matches) > 1:  # Only proceed if we have more than one chapter
+                logger.info(f"Found {len(chapter_matches)} chapters in the transcript")
+
+                # Create a list of chapter positions and sizes
+                chapters = []
+                for i in range(len(chapter_matches)):
+                    start_pos = chapter_matches[i].start()
+                    end_pos = chapter_matches[i+1].start() if i < len(chapter_matches) - 1 else len(processed_transcript)
+                    chapter_size = end_pos - start_pos
+                    chapter_title = processed_transcript[start_pos:start_pos+50].split("\n")[0]
+
+                    chapters.append({
+                        'index': i,
+                        'start': start_pos,
+                        'end': end_pos,
+                        'size': chapter_size,
+                        'title': chapter_title
+                    })
+
+                # Log chapter information
+                for ch in chapters:
+                    logger.info(f"Chapter {ch['index'] + 1}: {ch['title']} ({ch['size']} chars)")
+
+                # Calculate how many chapters we need to remove from the end
+                chapters_to_keep = len(chapters)
+                trimmed_length = processed_transcript_length
+
+                # Remove chapters from the end until we're within the max acceptable length
+                while trimmed_length > charater_amount_goal and chapters_to_keep > 1:
+                    chapters_to_keep -= 1
+                    removed_chapter_size = chapters[chapters_to_keep]['size']
+                    trimmed_length -= removed_chapter_size
+                    # print the amount of characters removed
+
+                    print(f"Trimmed length: {trimmed_length} characters")
+                    logger.info(f"Reducing lenght")
+
+                if chapters_to_keep < len(chapters):
+                    # Reconstruct the transcript with only the chapters we're keeping
+                    trimmed_transcript = processed_transcript[:chapters[chapters_to_keep]['start']]
+                    final_length = len(trimmed_transcript)
+
+                    logger.info(f"Trimmed transcript")
+
+                    processed_transcript = trimmed_transcript
+
+                    # Save the trimmed transcript if output_dir is provided
+                    if output_dir:
+                        trimmed_path = os.path.join(output_dir, "trimmed_transcript.txt")
+                        with open(trimmed_path, "w", encoding="utf-8") as f:
+                            f.write(processed_transcript)
+                        logger.info(f"Saved trimmed transcript to {trimmed_path}")
+                else:
+                    logger.warning("Could not trim transcript by removing whole chapters.")
+            else:
+                logger.warning("Not enough chapters found to trim the transcript")
+
         else:
             # Use fixed-size chunking approach
             logger.info("Using fixed-size chunking approach")
@@ -528,7 +609,7 @@ class ChunkedProcessor:
             return self._create_master_document_for_expansion(
                 transcript_text, target_length, ai_processor, config
             )
-        
+
         elif scaling_factor < 1.0:
             scaling_directive = "content condensation"
             scaling_action = "condense while preserving key information"
@@ -769,7 +850,7 @@ class ChunkedProcessor:
         # Import modules at function level to avoid scope issues
         import os
         import time
-        
+
         original_length = len(transcript_text)
         scaling_factor = target_length / original_length
 
@@ -783,7 +864,7 @@ class ChunkedProcessor:
         prompt_additional_instructions = config.get("ai", {}).get(
             "prompt_additional_instructions", ""
         )
-        
+
         # Get model from config
         model = config.get("ai", {}).get("model")
 
@@ -939,7 +1020,7 @@ class ChunkedProcessor:
         original_length = len(transcript_text)
         target_length = config.get("ai", {}).get("length_in_chars", original_length)
         scaling_factor = target_length / original_length if original_length > 0 else 1.0
-        
+
         # Get model from config
         model = config.get("ai", {}).get("model")
 
@@ -1355,7 +1436,7 @@ class ChunkedProcessor:
         prompt_tone_style = config.get("ai", {}).get("prompt_tone_style", "")
         prompt_retention_flow = config.get("ai", {}).get("prompt_retention_flow", "")
         prompt_additional_instructions = config.get("ai", {}).get("prompt_additional_instructions", "")
-        
+
         # Get model from config
         model = config.get("ai", {}).get("model")
 
@@ -1722,7 +1803,7 @@ class ChunkedProcessor:
         prompt_additional_instructions = config.get("ai", {}).get(
             "prompt_additional_instructions", ""
         )
-        
+
         # Get model from config
         model = config.get("ai", {}).get("model")
 

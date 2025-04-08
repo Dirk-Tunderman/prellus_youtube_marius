@@ -14,16 +14,229 @@ const DownloadsPage = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState(null);
   
+  /**
+   * Helper function to parse various date formats
+   * @param {string} dateString - The date string to parse
+   * @returns {Date|null} - A valid Date object or null if parsing fails
+   */
+  const parseDate = (dateString) => {
+    if (!dateString || dateString === 'Unknown') return null;
+    
+    console.log(`Parsing date string: "${dateString}"`);
+    
+    // Try to parse as ISO date first
+    let date = new Date(dateString);
+    
+    // Check if parsing was successful
+    if (!isNaN(date.getTime())) {
+      console.log(`Successfully parsed as standard date: ${date}`);
+      return date;
+    }
+    
+    // Try to parse date with 24-hour format from metadata: "April 7, 2025 20:44"
+    let match = dateString.match(/(\w+)\s+(\d+),?\s+(\d+)\s+(\d{1,2}):(\d{2})(?:\s*(AM|PM))?/i);
+    if (match) {
+      console.log(`Matched 24-hour format: ${JSON.stringify(match)}`);
+      const [_, month, day, year, hour, minute, ampm] = match;
+      const months = {
+        'January': 0, 'February': 1, 'March': 2, 'April': 3, 'May': 4, 'June': 5,
+        'July': 6, 'August': 7, 'September': 8, 'October': 9, 'November': 10, 'December': 11
+      };
+      
+      // Check if month is valid
+      if (months[month] !== undefined) {
+        let hours = parseInt(hour);
+        
+        // If AM/PM is specified, adjust hours accordingly
+        if (ampm) {
+          if (ampm.toUpperCase() === 'PM' && hours < 12) hours += 12;
+          if (ampm.toUpperCase() === 'AM' && hours === 12) hours = 0;
+        }
+        
+        date = new Date(
+          parseInt(year),
+          months[month],
+          parseInt(day),
+          hours,
+          parseInt(minute)
+        );
+        
+        if (!isNaN(date.getTime())) {
+          console.log(`Successfully parsed with 24-hour format: ${date}`);
+          return date;
+        }
+      }
+    }
+    
+    // Try to parse date with full month name: "April 7, 2025 at 08:25 PM"
+    match = dateString.match(/(\w+)\s+(\d+),?\s+(\d+)\s+at\s+(\d+):(\d+)\s+(\w+)/i);
+    if (match) {
+      console.log(`Matched full month pattern: ${JSON.stringify(match)}`);
+      const [_, month, day, year, hour, minute, ampm] = match;
+      const months = {
+        'January': 0, 'February': 1, 'March': 2, 'April': 3, 'May': 4, 'June': 5,
+        'July': 6, 'August': 7, 'September': 8, 'October': 9, 'November': 10, 'December': 11
+      };
+      
+      // Check if month is valid
+      if (months[month] !== undefined) {
+        let hours = parseInt(hour);
+        if (ampm.toUpperCase() === 'PM' && hours < 12) hours += 12;
+        if (ampm.toUpperCase() === 'AM' && hours === 12) hours = 0;
+        
+        date = new Date(
+          parseInt(year),
+          months[month],
+          parseInt(day),
+          hours,
+          parseInt(minute)
+        );
+        
+        if (!isNaN(date.getTime())) {
+          console.log(`Successfully parsed with full month: ${date}`);
+          return date;
+        }
+      }
+    }
+    
+    // Try to parse a timestamp from the project ID (e.g., "egDIqKLt2L4_20250407_204454")
+    match = dateString.match(/(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})/);
+    if (!match && dateString.includes('_')) {
+      // Try to extract timestamp from project ID instead
+      const projectId = dateString.split('_')[1]; // Get the timestamp part
+      if (projectId) {
+        match = projectId.match(/(\d{4})(\d{2})(\d{2})_?(\d{2})?(\d{2})?(\d{2})?/);
+      }
+    }
+    
+    if (match) {
+      console.log(`Matched timestamp format: ${JSON.stringify(match)}`);
+      const [_, year, month, day, hour, minute, second] = match;
+      
+      date = new Date(
+        parseInt(year),
+        parseInt(month) - 1, // Months are 0-indexed in JS Date
+        parseInt(day),
+        parseInt(hour || '0'),
+        parseInt(minute || '0'),
+        parseInt(second || '0')
+      );
+      
+      if (!isNaN(date.getTime())) {
+        console.log(`Successfully parsed from timestamp: ${date}`);
+        return date;
+      }
+    }
+    
+    console.warn(`Failed to parse date string: "${dateString}"`);
+    return null;
+  };
+  
   // Load all projects when component mounts
   useEffect(() => {
     fetchProjects();
   }, []);
   
+  /**
+   * Fetches all projects and sorts them by date (newest first)
+   */
   const fetchProjects = async () => {
     try {
       setLoading(true);
       const data = await projectService.getAllProjects();
-      setProjects(data);
+      
+      // Log the raw data to see what we're working with
+      console.log('Raw project data:', data);
+      
+      // Enhance each project with a sortDate for consistent sorting
+      const enhancedData = data.map(project => {
+        // First try using the project's date field
+        let sortDate = null;
+        
+        // Try to get a date from the timestamp field if present
+        if (project.timestamp) {
+          try {
+            const timestampDate = new Date(project.timestamp);
+            if (!isNaN(timestampDate.getTime())) {
+              sortDate = timestampDate;
+              console.log(`Project ${project.id} using timestamp field: ${sortDate}`);
+            }
+          } catch (e) {
+            console.warn(`Failed to parse timestamp for ${project.id}: ${e.message}`);
+          }
+        }
+        
+        // If no valid timestamp, try parsing the date field
+        if (!sortDate && project.date) {
+          const parsedDate = parseDate(project.date);
+          if (parsedDate) {
+            sortDate = parsedDate;
+            console.log(`Project ${project.id} using parsed date: ${sortDate}`);
+          }
+        }
+        
+        // If still no date, try extracting from project ID
+        if (!sortDate && project.id && project.id.includes('_')) {
+          const timestampPart = project.id.split('_')[1];
+          if (timestampPart && timestampPart.length >= 8) {
+            // Format like "20250407" (YYYYMMDD)
+            try {
+              const year = timestampPart.substring(0, 4);
+              const month = timestampPart.substring(4, 6);
+              const day = timestampPart.substring(6, 8);
+              
+              let hour = '00', minute = '00';
+              if (timestampPart.length >= 12) {
+                hour = timestampPart.substring(8, 10);
+                minute = timestampPart.substring(10, 12);
+              }
+              
+              const dateFromId = new Date(
+                parseInt(year),
+                parseInt(month) - 1, // Months are 0-indexed
+                parseInt(day),
+                parseInt(hour),
+                parseInt(minute)
+              );
+              
+              if (!isNaN(dateFromId.getTime())) {
+                sortDate = dateFromId;
+                console.log(`Project ${project.id} using date from ID: ${sortDate}`);
+              }
+            } catch (e) {
+              console.warn(`Failed to extract date from ID ${project.id}: ${e.message}`);
+            }
+          }
+        }
+        
+        // Return enhanced project with sort date
+        return {
+          ...project,
+          sortDate
+        };
+      });
+      
+      // Sort the enhanced projects
+      const sortedProjects = enhancedData.sort((a, b) => {
+        // If both have sort dates, compare them
+        if (a.sortDate && b.sortDate) {
+          return b.sortDate - a.sortDate; // Newest first
+        }
+        
+        // If only one has a sort date, prioritize it
+        if (a.sortDate) return -1;
+        if (b.sortDate) return 1;
+        
+        // Otherwise, fall back to ID comparison
+        return b.id.localeCompare(a.id); // Descending order for IDs
+      });
+      
+      // Explicitly log each project's sort date for verification
+      sortedProjects.forEach((project, index) => {
+        console.log(`Sorted[${index}]: "${project.id}" - SortDate: ${project.sortDate || 'None'} - OriginalDate: "${project.date}"`);
+      });
+      
+      setProjects(sortedProjects);
       setError('');
     } catch (err) {
       console.error('Error fetching projects:', err);
@@ -58,13 +271,24 @@ const DownloadsPage = () => {
       // If it's already a formatted date string, return it
       if (!dateString || dateString === 'Unknown') return 'Unknown';
       
-      // If it's an ISO date, format it
-      const date = new Date(dateString);
-      if (!isNaN(date.getTime())) {
-        return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+      // Use our parseDate helper function to get a valid date object
+      const date = parseDate(dateString);
+      
+      if (date && !isNaN(date.getTime())) {
+        // Format in a standard way
+        return date.toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
       }
+      
+      // If parsing failed, just return the original string
       return dateString;
     } catch (e) {
+      console.error('Error formatting date:', e);
       return dateString || 'Unknown';
     }
   };

@@ -1,51 +1,32 @@
 # Environment variables
 .env
 .env.local
-.env.development
-.env.test
-.env.production
+.env.development.local
+.env.test.local
+.env.production.local
 
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Dependencies
+# Dependency directories
 node_modules/
-.pnp
-.pnp.js
+venv/
+__pycache__/
 
 # Build outputs
 dist/
 build/
-.next/
-out/
+*.pyc
 
-# Cache
-.cache/
-.parcel-cache
+# Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
 
-# IDE specific files
+# Editor directories and files
 .idea/
 .vscode/
 *.swp
 *.swo
+
+# OS specific
 .DS_Store
-
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-venv/
-ENV/
-env/
-.env/
-.pytest_cache/
-
-# Misc
-.pid/
-*.pid 
+Thumbs.db 
