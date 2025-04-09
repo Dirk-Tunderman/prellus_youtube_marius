@@ -339,7 +339,7 @@ class ChunkedProcessor:
         logger.info(f"MAXIMUM ACCEPTABLE LENGTH: {max_acceptable_length} characters")
 
         # Check if transcript needs trimming
-        charater_amount_goal = config["ai"]["length"] * 820
+        charater_amount_goal = config["ai"]["length"] * 750
         if processed_transcript_length > charater_amount_goal:
             logger.warning(f"Transcript is too long by {processed_transcript_length - charater_amount_goal} characters")
 
