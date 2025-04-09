@@ -150,7 +150,7 @@ def youtube_to_audio(
         scaling_factor = 1.0
 
         # Convert duration minutes to character count
-        reading_speed = 250  # words per minute
+        reading_speed = 239  # words per minute
     
         avg_chars_per_word = 5  # characters per word
 
