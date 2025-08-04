@@ -213,7 +213,7 @@ def process_transcript():
         }
 
         sys.stdout.flush()
-
+        
         # Detailed error handling for config loading
         try:
             config_path = os.path.join(project_root, "app/config/config.yaml")

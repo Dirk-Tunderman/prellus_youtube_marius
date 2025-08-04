@@ -94,49 +94,51 @@ class YouTubeTranscriptFetcher:
 
             logger.info(f"Fetching transcript for YouTube video: {video_id}")
 
+            # Create API instance
+            api = YouTubeTranscriptApi()
+            
             # Try to get transcript in preferred language
             try:
-                transcript = YouTubeTranscriptApi.get_transcript(
+                transcript = api.fetch(
                     video_id, languages=[self.preferred_language]
                 )
                 logger.info(
                     f"Found transcript in preferred language: {self.preferred_language}"
                 )
-                return transcript
+                # Convert FetchedTranscript to list of dicts
+                return [{"text": item.text, "start": item.start, "duration": item.duration} for item in transcript]
             except NoTranscriptFound:
                 # If preferred language not found, try to list available transcripts
-                transcript_list = YouTubeTranscriptApi.list_transcripts(video_id)
+                transcript_list = api.list(video_id)
 
                 # Try to get manually created transcript in any language
                 try:
-                    # Get first manually created transcript
-                    transcript = (
-                        transcript_list.find_manually_created_transcript().fetch()
-                    )
-                    lang = (
-                        transcript_list.find_manually_created_transcript().language_code
-                    )
-                    logger.info(
-                        f"Found manually created transcript in language: {lang}"
-                    )
-                    return transcript
-                except NoTranscriptFound:
-                    # If no manually created transcript, try auto-generated if allowed
-                    if self.fallback_to_auto:
-                        try:
-                            # Get first auto-generated transcript
-                            transcript = (
-                                transcript_list.find_generated_transcript().fetch()
-                            )
-                            lang = (
-                                transcript_list.find_generated_transcript().language_code
-                            )
+                    # Find first manually created transcript
+                    for transcript_obj in transcript_list:
+                        if not transcript_obj.is_generated:
+                            transcript = transcript_obj.fetch()
                             logger.info(
-                                f"Found auto-generated transcript in language: {lang}"
+                                f"Found manually created transcript in language: {transcript_obj.language}"
                             )
-                            return transcript
-                        except NoTranscriptFound:
-                            pass
+                            # Convert FetchedTranscript to list of dicts
+                            return [{"text": item.text, "start": item.start, "duration": item.duration} for item in transcript]
+                except Exception as e:
+                    logger.debug(f"Error finding manually created transcript: {e}")
+                
+                # If no manually created transcript, try auto-generated if allowed
+                if self.fallback_to_auto:
+                    try:
+                        # Find first auto-generated transcript
+                        for transcript_obj in transcript_list:
+                            if transcript_obj.is_generated:
+                                transcript = transcript_obj.fetch()
+                                logger.info(
+                                    f"Found auto-generated transcript in language: {transcript_obj.language}"
+                                )
+                                # Convert FetchedTranscript to list of dicts
+                                return [{"text": item.text, "start": item.start, "duration": item.duration} for item in transcript]
+                    except Exception as e:
+                        logger.debug(f"Error finding auto-generated transcript: {e}")
 
             # If we get here, no transcript was found
             raise ValueError(f"No transcript found for video: {video_id}")

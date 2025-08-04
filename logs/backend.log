@@ -1,29 +1,37 @@
 
 ========== YouTube Transcript Processor API ==========
-STARTED AT: 2025-04-03 16:08:43
+STARTED AT: 2025-08-04 18:34:17
 Server running at: http://localhost:5001
 Test the API at: http://localhost:5001/api/test
 ======================================================
 
  * Serving Flask app 'main'
  * Debug mode: on
-2025-04-03 16:08:43,662 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+2025-08-04 18:34:17,186 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
  * Running on all addresses (0.0.0.0)
  * Running on http://127.0.0.1:5001
- * Running on http://10.14.0.2:5001
-2025-04-03 16:08:43,662 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
-2025-04-03 16:08:43,663 - werkzeug - INFO -  * Restarting with stat
+ * Running on http://192.168.178.133:5001
+2025-08-04 18:34:17,187 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-08-04 18:34:17,187 - werkzeug - INFO -  * Restarting with stat
 
 ========== YouTube Transcript Processor API ==========
-STARTED AT: 2025-04-03 16:09:04
+STARTED AT: 2025-08-04 18:34:18
 Server running at: http://localhost:5001
 Test the API at: http://localhost:5001/api/test
 ======================================================
 
-2025-04-03 16:09:04,743 - werkzeug - WARNING -  * Debugger is active!
-2025-04-03 16:09:04,755 - werkzeug - INFO -  * Debugger PIN: 797-589-508
+2025-08-04 18:34:18,521 - werkzeug - WARNING -  * Debugger is active!
+2025-08-04 18:34:18,530 - werkzeug - INFO -  * Debugger PIN: 110-866-042
+API test endpoint accessed
+2025-08-04 18:34:18,550 - werkzeug - INFO - 127.0.0.1 - - [04/Aug/2025 18:34:18] "GET /api/test HTTP/1.1" 200 -
 Getting transcript list
-Project path: /Users/verdant/prellus_youtube_marius/app/data/transcripts/ZSt9tm3RoUU_20250401_193839
-2025-04-03 16:22:44,518 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 16:22:44] "GET /api/transcripts HTTP/1.1" 200 -
-2025-04-03 16:22:44,520 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 16:22:44] "GET /api/prompts HTTP/1.1" 200 -
-2025-04-03 16:22:44,520 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 16:22:44] "GET /api/projects HTTP/1.1" 200 -
+Project path: /Users/dirktunderman/Desktop/prellus/app/data/transcripts/ZSt9tm3RoUU_20250401_193839
+2025-08-04 18:34:28,945 - werkzeug - INFO - 127.0.0.1 - - [04/Aug/2025 18:34:28] "GET /api/transcripts HTTP/1.1" 200 -
+Project path: /Users/dirktunderman/Desktop/prellus/app/data/transcripts/X0tAVPDIR9I_20250804_181708
+2025-08-04 18:34:28,946 - werkzeug - INFO - 127.0.0.1 - - [04/Aug/2025 18:34:28] "GET /api/prompts HTTP/1.1" 200 -
+2025-08-04 18:34:28,947 - werkzeug - INFO - 127.0.0.1 - - [04/Aug/2025 18:34:28] "GET /api/projects HTTP/1.1" 200 -
+2025-08-04 18:34:33,254 - werkzeug - INFO - 127.0.0.1 - - [04/Aug/2025 18:34:33] "GET /api/projects/X0tAVPDIR9I_20250804_181708/transcript HTTP/1.1" 200 -
+/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/multiprocessing/resource_tracker.py:254: UserWarning: resource_tracker: There appear to be 1 leaked semaphore objects to clean up at shutdown
+  warnings.warn('resource_tracker: There appear to be %d '
+/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/multiprocessing/resource_tracker.py:254: UserWarning: resource_tracker: There appear to be 1 leaked semaphore objects to clean up at shutdown
+  warnings.warn('resource_tracker: There appear to be %d '

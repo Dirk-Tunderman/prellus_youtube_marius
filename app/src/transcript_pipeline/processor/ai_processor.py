@@ -23,8 +23,8 @@ from litellm.exceptions import BadRequestError, AuthenticationError, RateLimitEr
 
 logger = logging.getLogger(__name__)
 
-# System prompt for transcript transformation
-TRANSCRIPT_TRANSFORMATION_PROMPT = """
+# Default system prompt for transcript transformation
+DEFAULT_TRANSCRIPT_TRANSFORMATION_PROMPT = """
 You are a specialized transcript transformation assistant that converts YouTube transcripts into slightly modified versions while preserving the core content, structure, and educational value.
 TASK DESCRIPTION
 Your task is to transform a raw transcript into a more engaging narrative format while maintaining:
@@ -96,6 +96,68 @@ CRITICAL:
 OUTPUT FORMAT
 Your output should be a cohesive, flowing transcript that reads like a well-crafted narrative while teaching the exact same content. If the original included speaker labels or timestamps, maintain these in your transformed version.
 """
+
+def create_custom_system_prompt(role="", script_structure="", tone_style="", retention_flow="", additional_instructions=""):
+    """
+    Create a custom system prompt based on user-provided instructions.
+    
+    Args:
+        role: The role/perspective to adopt
+        script_structure: How to structure the script
+        tone_style: The tone and style to use
+        retention_flow: Retention and flow techniques
+        additional_instructions: Any additional instructions
+        
+    Returns:
+        A formatted system prompt incorporating the custom instructions
+    """
+    # If no custom instructions provided, return default
+    if not any([role, script_structure, tone_style, retention_flow, additional_instructions]):
+        return DEFAULT_TRANSCRIPT_TRANSFORMATION_PROMPT
+    
+    # Build custom prompt
+    prompt_parts = []
+    
+    # Role section
+    if role:
+        prompt_parts.append(f"# YOUR ROLE\n{role}\n")
+    else:
+        prompt_parts.append("# YOUR ROLE\nYou are a specialized transcript transformation assistant.\n")
+    
+    prompt_parts.append("# TASK DESCRIPTION")
+    prompt_parts.append("Transform the provided transcript according to the instructions below.\n")
+    
+    # Script Structure section
+    if script_structure:
+        prompt_parts.append(f"# SCRIPT STRUCTURE\n{script_structure}\n")
+    
+    # Tone & Style section
+    if tone_style:
+        prompt_parts.append(f"# TONE & STYLE\n{tone_style}\n")
+    
+    # Retention & Flow section
+    if retention_flow:
+        prompt_parts.append(f"# RETENTION & FLOW TECHNIQUES\n{retention_flow}\n")
+    
+    # Additional Instructions section
+    if additional_instructions:
+        prompt_parts.append(f"# ADDITIONAL INSTRUCTIONS\n{additional_instructions}\n")
+    
+    # Add standard requirements
+    prompt_parts.append("""# OUTPUT REQUIREMENTS
+1. Follow the provided structure and instructions precisely
+2. Maintain the factual accuracy of all information
+3. Do not include timestamps or special characters like * [] ()
+4. Create a flowing, engaging narrative that matches the specified tone
+5. Apply all retention and flow techniques as instructed
+
+# CRITICAL FORMATTING
+- Do not include any timestamps
+- Do not include any special characters like * [] () or others
+- Format as clean, readable text suitable for TTS processing
+""")
+    
+    return "\n".join(prompt_parts)
 
 class TranscriptProcessorInterface:
     """
@@ -262,8 +324,34 @@ class TranscriptAIProcessor(TranscriptProcessorInterface):
         if self.mock_mode:
             self.logger.info("Using mock LLM API response (MOCK_LLM_API=true)")
         
-        # System prompt
-        self.system_prompt = TRANSCRIPT_TRANSFORMATION_PROMPT
+        # Extract custom prompt fields from config
+        self.prompt_role = config.get("prompt_role", "")
+        self.prompt_script_structure = config.get("prompt_script_structure", "")
+        self.prompt_tone_style = config.get("prompt_tone_style", "")
+        self.prompt_retention_flow = config.get("prompt_retention_flow", "")
+        self.prompt_additional_instructions = config.get("prompt_additional_instructions", "")
+        
+        # Create system prompt based on whether custom instructions are provided
+        self.system_prompt = create_custom_system_prompt(
+            role=self.prompt_role,
+            script_structure=self.prompt_script_structure,
+            tone_style=self.prompt_tone_style,
+            retention_flow=self.prompt_retention_flow,
+            additional_instructions=self.prompt_additional_instructions
+        )
+        
+        # Log if custom instructions are being used
+        if any([self.prompt_role, self.prompt_script_structure, self.prompt_tone_style, 
+                self.prompt_retention_flow, self.prompt_additional_instructions]):
+            self.logger.info("Using custom prompt instructions for transcript processing")
+            if self.prompt_role:
+                self.logger.info(f"Custom role: {self.prompt_role[:50]}...")
+            if self.prompt_script_structure:
+                self.logger.info(f"Custom script structure provided")
+            if self.prompt_tone_style:
+                self.logger.info(f"Custom tone/style: {self.prompt_tone_style[:50]}...")
+        else:
+            self.logger.info("Using default transcript transformation prompt")
     
     def process_transcript(self, transcript_text: str) -> str:
         """
@@ -497,8 +585,32 @@ def process_transcript(video_dir: str, config: Optional[Dict[str, Any]] = None, 
         transcript_text = f.read()
     
 
-    expected_transcript_length = config["ai"]["length_in_chars"]
+    expected_transcript_length = config.get("ai", {}).get("length_in_chars", len(transcript_text))
     print(f"expected_transcript_length: {expected_transcript_length}")
+    
+    # Log custom instructions if present
+    ai_config = config.get("ai", {})
+    has_custom_instructions = any([
+        ai_config.get("prompt_role"),
+        ai_config.get("prompt_script_structure"),
+        ai_config.get("prompt_tone_style"),
+        ai_config.get("prompt_retention_flow"),
+        ai_config.get("prompt_additional_instructions")
+    ])
+    
+    if has_custom_instructions:
+        logger.info("Custom instructions detected in config:")
+        if ai_config.get("prompt_role"):
+            logger.info(f"  - Role: {ai_config.get('prompt_role')[:50]}...")
+        if ai_config.get("prompt_script_structure"):
+            logger.info(f"  - Script Structure: Present")
+        if ai_config.get("prompt_tone_style"):
+            logger.info(f"  - Tone/Style: {ai_config.get('prompt_tone_style')[:50]}...")
+        if ai_config.get("prompt_retention_flow"):
+            logger.info(f"  - Retention/Flow: Present")
+        if ai_config.get("prompt_additional_instructions"):
+            logger.info(f"  - Additional Instructions: Present")
+    
     # Determine whether to use standard or chunked processing
     large_transcript_threshold = config.get("large_transcript_threshold", 15000)
     is_large_transcript = expected_transcript_length > large_transcript_threshold
@@ -508,6 +620,12 @@ def process_transcript(video_dir: str, config: Optional[Dict[str, Any]] = None, 
     # Create processed directory if it doesn't exist
     processed_dir = os.path.join(video_dir, "processed")
     os.makedirs(processed_dir, exist_ok=True)
+    
+    # Log which processing mode will be used
+    if is_large_transcript:
+        logger.info(f"Using CHUNKED processing (transcript length {expected_transcript_length} > threshold {large_transcript_threshold})")
+    else:
+        logger.info(f"Using STANDARD processing (transcript length {expected_transcript_length} <= threshold {large_transcript_threshold})")
 
     if is_large_transcript:
         logger.info(f"Using chunked processor for large transcript ({len(transcript_text)} characters)")
