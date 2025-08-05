@@ -601,7 +601,19 @@ class ChunkedProcessor:
             "prompt_additional_instructions", ""
         )
 
-        # Determine scaling direction for prompting
+        # Check for recreation mode first (regardless of scaling factor)
+        has_custom_instructions = any([prompt_role and prompt_role != "You are an expert writer tasked with processing transcript content.", 
+                                       prompt_script_structure, prompt_tone_style, 
+                                       prompt_retention_flow, prompt_additional_instructions])
+        
+        if has_custom_instructions:
+            logger.info(f"🎯 RECREATION MODE detected - using custom instruction-based master document ({scaling_factor:.2f}x)")
+            logger.info(f"   Custom instructions override scaling factor logic")
+            return self._create_master_document_for_expansion(
+                transcript_text, target_length, ai_processor, config
+            )
+        
+        # Fall back to scaling-based logic for cases without custom instructions
         if scaling_factor > 1.0:
             logger.info(
                 f"Using expansion-specific master document for high scaling factor ({scaling_factor:.2f}x)"
@@ -847,6 +859,9 @@ class ChunkedProcessor:
         Returns:
             A master document with detailed chapter outlines
         """
+        logger.info("="*60)
+        logger.info("🏗️ MASTER DOCUMENT CREATION FOR EXPANSION")
+        logger.info("="*60)
         # Import modules at function level to avoid scope issues
         import os
         import time
@@ -864,6 +879,32 @@ class ChunkedProcessor:
         prompt_additional_instructions = config.get("ai", {}).get(
             "prompt_additional_instructions", ""
         )
+        
+        # === CUSTOM INSTRUCTIONS ANALYSIS ===
+        has_custom_instructions = any([prompt_role, prompt_script_structure, prompt_tone_style, 
+                                       prompt_retention_flow, prompt_additional_instructions])
+        logger.info(f"📝 Custom instructions present: {has_custom_instructions}")
+        
+        if has_custom_instructions:
+            logger.info("🎯 RECREATION MODE: Should create new topic-based master document")
+            logger.info("   Expected behavior: Master document should incorporate new topics from instructions")
+            logger.info("   Not just expand existing transcript topics!")
+            if prompt_role:
+                logger.info(f"   Role: {prompt_role[:100]}...")
+            if prompt_script_structure:
+                logger.info(f"   Structure: {len(prompt_script_structure)} chars provided")
+                # Log first few lines of structure
+                structure_lines = prompt_script_structure.split('\n')[:10]  # Show more lines
+                for i, line in enumerate(structure_lines):
+                    if line.strip():
+                        logger.info(f"     Line {i+1}: {line.strip()[:100]}")
+            if prompt_tone_style:
+                logger.info(f"   Tone: {prompt_tone_style[:100]}...")
+            if prompt_additional_instructions:
+                logger.info(f"   Additional: {prompt_additional_instructions[:100]}...")
+        else:
+            logger.info("🔧 IMPROVEMENT MODE: Will expand existing content")
+        logger.info("="*60)
 
         # Get model from config
         model = config.get("ai", {}).get("model")
@@ -893,9 +934,63 @@ class ChunkedProcessor:
             master_doc += f"## Chapter {i+1}: {segment_text[:50]}... ({start_char}-{end_char})\n\n"
             master_doc += f"This segment contains approximately {len(segment_text)} characters and should be expanded to at least {max_chapter_size + 5000} characters.\n\n"
 
+            # === CHAPTER TOPIC GENERATION ===
+            logger.info(f"🔍 Generating topics for Chapter {i+1}")
+            logger.info(f"   Segment text (first 100 chars): {segment_text[:100]}...")
+            
+            # Check if we should use recreation mode for this chapter
+            if has_custom_instructions:
+                logger.info(f"🎯 Using RECREATION MODE for Chapter {i+1} topic generation")
+                logger.info(f"   Should ignore original segment content and use custom instructions")
+            else:
+                logger.info(f"🔧 Using IMPROVEMENT MODE for Chapter {i+1} topic generation")
+                logger.info(f"   Will expand on existing segment content")
+
             # Generate topic outline for this segment using an API call
-            topic_prompt = f"""
-    # CHAPTER TOPIC OUTLINE GENERATOR
+            if has_custom_instructions:
+                # RECREATION MODE: Use custom instructions to create new topics
+                topic_prompt = f"""
+    # NEW TOPIC CREATION (RECREATION MODE)
+
+    ## YOUR ROLE
+    {prompt_role}
+
+    ## CRITICAL INSTRUCTION: RECREATION MODE
+    You are in RECREATION MODE. This means you should CREATE ENTIRELY NEW CONTENT based on the provided structure and role.
+    DO NOT expand on the original transcript content. IGNORE ANY CONTEXT PROVIDED BELOW.
+    Instead, create new topics that align with your role and structure.
+
+    ## SCRIPT STRUCTURE TO FOLLOW
+    {prompt_script_structure}
+
+    ## OBJECTIVE
+    Create 5-8 main topics for Chapter {i+1} that align with the script structure above.
+    This is segment {i+1} of {required_chapters} total chapters needed.
+
+    ## YOUR TASK
+    Based on the script structure provided:
+    1. Identify which section of the script structure this chapter should cover
+    2. Create 5-8 specific topics that fit that section
+    3. Each topic should advance the narrative defined in your role and structure
+    4. IGNORE the original transcript content - create new topics based on your instructions
+
+    ## OUTPUT FORMAT
+    Format your response as "NEW TOPICS FOR CHAPTER {i+1}:" followed by a numbered list.
+    For each topic include:
+    - A clear title
+    - 2-3 sentences explaining what will be covered
+    - How it fits into the overall structure
+
+    ## TONE & STYLE
+    {prompt_tone_style}
+    
+    ## ADDITIONAL INSTRUCTIONS
+    {prompt_additional_instructions}
+    """
+            else:
+                # IMPROVEMENT MODE: Expand existing content
+                topic_prompt = f"""
+    # CHAPTER TOPIC OUTLINE GENERATOR (IMPROVEMENT MODE)
 
     ## YOUR ROLE
     {prompt_role}
@@ -924,24 +1019,48 @@ class ChunkedProcessor:
 
             # Make a separate API call to get topic suggestions
             try:
+                logger.info(f"🔄 Calling LLM for Chapter {i+1} topic generation...")
+                
+                # For recreation mode, use placeholder context to avoid empty message error
+                # The prompt will instruct to ignore this context and create new content
+                if has_custom_instructions:
+                    context_to_use = "[RECREATION MODE: Ignoring original content. Creating new content based on custom instructions provided in the prompt.]"
+                    logger.info(f"   Using placeholder context (recreation mode)")
+                else:
+                    context_to_use = segment_text
+                    logger.info(f"   Using segment text as context (improvement mode)")
+                
                 topic_outline = process_llm(
-                    context=segment_text,
+                    context=context_to_use,
                     system_prompt=topic_prompt,
                     model=model,  # Use model from config
                     max_tokens=4096,
                     temperature=0.7,
                 )
-
+                
+                logger.info(f"✅ Generated topics for Chapter {i+1}: {len(topic_outline)} chars")
+                logger.info(f"   First 200 chars: {topic_outline[:200].replace(chr(10), ' ')}...")
+                
                 master_doc += topic_outline + "\n\n"
             except Exception as e:
-                logger.error(f"Error generating topic outline for Chapter {i+1}: {e}")
+                logger.error(f"❌ Error generating topic outline for Chapter {i+1}: {e}")
                 # Fallback if API call fails
-                master_doc += f"TOPICS TO COVER IN CHAPTER {i+1}:\n"
-                master_doc += "1. Main theme of this segment\n"
-                master_doc += "2. Historical context and background\n"
-                master_doc += "3. Key developments and events\n"
-                master_doc += "4. Important figures and their contributions\n"
-                master_doc += "5. Significance and impact\n\n"
+                if has_custom_instructions:
+                    logger.info(f"   Using recreation mode fallback topics")
+                    master_doc += f"NEW TOPICS FOR CHAPTER {i+1}:\n"
+                    master_doc += "1. Introduction to the main theme based on your role\n"
+                    master_doc += "2. Key concepts and background information\n"
+                    master_doc += "3. Detailed exploration of primary topics\n"
+                    master_doc += "4. Important examples and case studies\n"
+                    master_doc += "5. Conclusions and next steps\n\n"
+                else:
+                    logger.info(f"   Using improvement mode fallback topics")
+                    master_doc += f"TOPICS TO COVER IN CHAPTER {i+1}:\n"
+                    master_doc += "1. Main theme of this segment\n"
+                    master_doc += "2. Historical context and background\n"
+                    master_doc += "3. Key developments and events\n"
+                    master_doc += "4. Important figures and their contributions\n"
+                    master_doc += "5. Significance and impact\n\n"
 
             master_doc += "EXPANSION GUIDANCE:\n"
             master_doc += "- Add historical context and background information\n"
@@ -992,6 +1111,19 @@ class ChunkedProcessor:
     - Incorporate accounts of travelers who visited the region
     """
 
+        # Add recreation mode marker to master document if custom instructions are present
+        if has_custom_instructions:
+            logger.info(f"📌 Adding RECREATION MODE markers to master document")
+            # Add multiple markers to ensure detection works
+            recreation_header = "# RECREATION MODE ACTIVE\\n# NEW TOPICS FOR CHAPTER - IGNORE ORIGINAL CONTENT\\n\\n"
+            master_doc = recreation_header + master_doc
+            logger.info(f"   Added recreation mode markers to master document")
+            logger.info(f"   Master document now starts with: {master_doc[:100]}...")
+        
+        logger.info(f"✅ Master document creation complete: {len(master_doc)} characters")
+        logger.info(f"   Contains recreation mode marker: {'RECREATION MODE' in master_doc}")
+        logger.info("="*60)
+        
         return master_doc
 
     def _process_with_expansion_chapters(

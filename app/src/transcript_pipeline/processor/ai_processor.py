@@ -101,6 +101,9 @@ def create_custom_system_prompt(role="", script_structure="", tone_style="", ret
     """
     Create a custom system prompt based on user-provided instructions.
     
+    Since custom instructions are typically always provided, this defaults to RECREATION MODE
+    which creates entirely new content rather than just improving existing content.
+    
     Args:
         role: The role/perspective to adopt
         script_structure: How to structure the script
@@ -109,27 +112,50 @@ def create_custom_system_prompt(role="", script_structure="", tone_style="", ret
         additional_instructions: Any additional instructions
         
     Returns:
-        A formatted system prompt incorporating the custom instructions
+        A formatted system prompt for content recreation or default improvement
     """
-    # If no custom instructions provided, return default
-    if not any([role, script_structure, tone_style, retention_flow, additional_instructions]):
+    # Check if any custom instructions are provided
+    has_custom_instructions = any([role, script_structure, tone_style, retention_flow, additional_instructions])
+    
+    if not has_custom_instructions:
+        # Rare case: no custom instructions, use default improvement mode
         return DEFAULT_TRANSCRIPT_TRANSFORMATION_PROMPT
     
-    # Build custom prompt
+    # Default case: custom instructions provided, use RECREATION MODE
+    return create_recreation_mode_prompt(role, script_structure, tone_style, retention_flow, additional_instructions)
+
+def create_recreation_mode_prompt(role="", script_structure="", tone_style="", retention_flow="", additional_instructions=""):
+    """
+    Create a recreation mode prompt that creates entirely new content.
+    
+    This is the default mode when custom instructions are provided.
+    """
     prompt_parts = []
     
     # Role section
     if role:
         prompt_parts.append(f"# YOUR ROLE\n{role}\n")
     else:
-        prompt_parts.append("# YOUR ROLE\nYou are a specialized transcript transformation assistant.\n")
+        prompt_parts.append("# YOUR ROLE\nYou are a content creator specializing in script development.\n")
     
-    prompt_parts.append("# TASK DESCRIPTION")
-    prompt_parts.append("Transform the provided transcript according to the instructions below.\n")
+    # Core task description for recreation mode
+    prompt_parts.append("""# CONTENT CREATION TASK
+Create ENTIRELY NEW CONTENT based on your role and instructions. Use the provided transcript as reference material ONLY for:
+- Length and pacing guidance (match the approximate duration)
+- General structural inspiration (if no custom structure provided)
+
+DO NOT keep or maintain the original transcript's:
+- Subject matter or topic
+- Specific facts, examples, or information
+- Original structure or organization
+- Content focus or educational material
+
+Your job is to CREATE NEW CONTENT that follows your instructions completely.
+""")
     
     # Script Structure section
     if script_structure:
-        prompt_parts.append(f"# SCRIPT STRUCTURE\n{script_structure}\n")
+        prompt_parts.append(f"# SCRIPT STRUCTURE TO FOLLOW\n{script_structure}\n")
     
     # Tone & Style section
     if tone_style:
@@ -143,18 +169,29 @@ def create_custom_system_prompt(role="", script_structure="", tone_style="", ret
     if additional_instructions:
         prompt_parts.append(f"# ADDITIONAL INSTRUCTIONS\n{additional_instructions}\n")
     
-    # Add standard requirements
-    prompt_parts.append("""# OUTPUT REQUIREMENTS
-1. Follow the provided structure and instructions precisely
-2. Maintain the factual accuracy of all information
-3. Do not include timestamps or special characters like * [] ()
-4. Create a flowing, engaging narrative that matches the specified tone
-5. Apply all retention and flow techniques as instructed
+    # Recreation-specific requirements
+    prompt_parts.append("""# OUTPUT REQUIREMENTS FOR NEW CONTENT CREATION
+1. Create entirely new content following your role and instructions
+2. Match the approximate length/duration of the original transcript
+3. Follow the provided script structure precisely (if provided)
+4. Apply the specified tone, style, and retention techniques
+5. Focus completely on the NEW subject matter specified in your role/instructions
+6. Use the original transcript ONLY as a pacing and length reference
+7. Do not include timestamps or special characters like * [] ()
+8. Ensure content is engaging and matches all provided specifications
 
-# CRITICAL FORMATTING
+# CRITICAL REMINDERS
+- This is CONTENT CREATION, not content improvement
+- Create new material based on your instructions
+- The original transcript is just a reference for length and pacing
+- Your output should cover the NEW topic specified in your role and instructions
+- Follow your provided structure as the blueprint for organization
+
+# FORMATTING REQUIREMENTS
 - Do not include any timestamps
 - Do not include any special characters like * [] () or others
 - Format as clean, readable text suitable for TTS processing
+- Use natural speech patterns and clear paragraph breaks
 """)
     
     return "\n".join(prompt_parts)
@@ -340,18 +377,25 @@ class TranscriptAIProcessor(TranscriptProcessorInterface):
             additional_instructions=self.prompt_additional_instructions
         )
         
-        # Log if custom instructions are being used
-        if any([self.prompt_role, self.prompt_script_structure, self.prompt_tone_style, 
-                self.prompt_retention_flow, self.prompt_additional_instructions]):
-            self.logger.info("Using custom prompt instructions for transcript processing")
+        # Log processing mode based on custom instructions
+        has_custom_instructions = any([self.prompt_role, self.prompt_script_structure, self.prompt_tone_style, 
+                                       self.prompt_retention_flow, self.prompt_additional_instructions])
+        
+        if has_custom_instructions:
+            self.logger.info("🎯 USING RECREATION MODE - Creating entirely new content")
+            self.logger.info("📝 Custom instructions will be used to create new content, not improve existing content")
             if self.prompt_role:
-                self.logger.info(f"Custom role: {self.prompt_role[:50]}...")
+                self.logger.info(f"   • Role: {self.prompt_role[:50]}...")
             if self.prompt_script_structure:
-                self.logger.info(f"Custom script structure provided")
+                self.logger.info(f"   • Script structure: Present ({len(self.prompt_script_structure)} chars)")
             if self.prompt_tone_style:
-                self.logger.info(f"Custom tone/style: {self.prompt_tone_style[:50]}...")
+                self.logger.info(f"   • Tone/style: {self.prompt_tone_style[:50]}...")
+            if self.prompt_retention_flow:
+                self.logger.info(f"   • Retention/flow techniques: Present")
+            if self.prompt_additional_instructions:
+                self.logger.info(f"   • Additional instructions: Present")
         else:
-            self.logger.info("Using default transcript transformation prompt")
+            self.logger.info("🔧 USING IMPROVEMENT MODE - Enhancing existing content style only")
     
     def process_transcript(self, transcript_text: str) -> str:
         """

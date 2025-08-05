@@ -105,20 +105,40 @@ def youtube_to_audio(
         Dictionary with information about the generated output
     """
     try:
-        # Log json_data if provided
+        # === COMPLETE INPUT DATA LOGGING ===
+        logger.info("=" * 80)
+        logger.info("📋 COMPLETE INPUT DATA FOR PROCESSING")
+        logger.info("=" * 80)
+        logger.info(f"🔗 YouTube URL: {youtube_url}")
+        logger.info(f"⚙️ Voice Pack: {voice_pack}")
+        logger.info(f"⏭️ Skip TTS: {skip_tts}")
+        
         if json_data:
-            logger.info(
-                f"Received additional data: duration={json_data.get('duration')}"
-            )
+            logger.info("📊 JSON Data Received:")
+            logger.info(f"   ⏱️ Duration: {json_data.get('duration')} minutes")
+            logger.info(f"   🗣️ Voice: {json_data.get('voice', 'not specified')}")
+            logger.info(f"   🏃 Speed: {json_data.get('speed', 'not specified')}x")
+            logger.info(f"   📝 Title: {json_data.get('title', 'not specified')}")
+            
+            # Log all other json_data fields
+            other_fields = {k: v for k, v in json_data.items() if k not in ['duration', 'voice', 'speed', 'title', 'promptData']}
+            if other_fields:
+                logger.info("   📋 Other fields:")
+                for key, value in other_fields.items():
+                    logger.info(f"      - {key}: {value}")
+        else:
+            logger.info("📊 No JSON data provided")
+        
+        logger.info("=" * 80)
 
-            # Check if we have structured prompt data
-            if "promptData" in json_data:
-                prompt_data = json_data.get("promptData", {})
-                logger.info("Received structured prompt data:")
-                for key, value in prompt_data.items():
-                    if value:
-                        short_value = value[:50] + "..." if len(value) > 50 else value
-                        logger.info(f"  - {key}: {short_value}")
+        # Check if we have structured prompt data
+        if json_data and "promptData" in json_data:
+            prompt_data = json_data.get("promptData", {})
+            logger.info("📝 Structured Prompt Data:")
+            for key, value in prompt_data.items():
+                if value:
+                    short_value = value[:100] + "..." if len(value) > 100 else value
+                    logger.info(f"   - {key}: {short_value}")
 
         # Step 1: Fetch transcript
         logger.info(f"Step 1: Fetching transcript for {youtube_url}")
@@ -149,14 +169,40 @@ def youtube_to_audio(
         target_length = None
         scaling_factor = 1.0
 
-        # Convert duration minutes to character count
-        reading_speed = 239  # words per minute
-    
-        avg_chars_per_word = 5  # characters per word
-
-        target_length = int(
-            json_data.get("duration") * reading_speed * avg_chars_per_word
-        )
+        if json_data and json_data.get("duration"):
+            duration_minutes = json_data.get("duration")
+            speed_factor = json_data.get("speed", 1.0)  # Default to 1.0x if not specified
+            
+            # === IMPROVED LENGTH CALCULATION ===
+            logger.info("🧮 LENGTH CALCULATION:")
+            logger.info(f"   ⏱️ Requested duration: {duration_minutes} minutes")
+            logger.info(f"   🏃 Speed factor: {speed_factor}x")
+            
+            # TTS reading speed (slower than human reading)
+            base_tts_reading_speed = 180  # words per minute for TTS
+            
+            # Adjust for speed factor: slower speed = fewer characters needed for same time
+            # At 0.8x speed, content plays 25% slower, so we need 25% fewer characters
+            effective_reading_speed = base_tts_reading_speed / speed_factor
+            
+            # More accurate character count for TTS content
+            avg_chars_per_word = 4.7  # Based on English language averages
+            
+            target_length = int(duration_minutes * effective_reading_speed * avg_chars_per_word)
+            
+            logger.info(f"   📚 Base TTS reading speed: {base_tts_reading_speed} WPM")
+            logger.info(f"   ⚡ Effective reading speed: {effective_reading_speed:.1f} WPM")
+            logger.info(f"   🔤 Average chars per word: {avg_chars_per_word}")
+            logger.info(f"   🎯 Target length: {target_length} characters")
+            
+            # Show comparison with old calculation for reference
+            old_calculation = int(duration_minutes * 239 * 5)
+            logger.info(f"   📊 Old calculation would be: {old_calculation} characters")
+            logger.info(f"   📉 New calculation is {target_length/old_calculation:.2f}x the old value")
+        else:
+            # Fallback for when no duration is specified
+            target_length = original_length
+            logger.info("⚠️ No duration specified, using original length")
 
         # Calculate scaling factor
         scaling_factor = target_length / original_length if original_length > 0 else 1.0
@@ -230,6 +276,52 @@ def youtube_to_audio(
                 f"Forcing chunked processing due to significant scaling factor ({scaling_factor:.2f}x)"
             )
 
+        # === PROCESSING PATH DECISION LOGGING ===
+        logger.info("="*60)
+        logger.info("🔍 PROCESSING PATH DECISION ANALYSIS")
+        logger.info("="*60)
+        
+        # Check if custom instructions are present
+        ai_config = processing_config.get("ai", {})
+        has_custom_instructions = any([
+            ai_config.get("prompt_role"),
+            ai_config.get("prompt_script_structure"), 
+            ai_config.get("prompt_tone_style"),
+            ai_config.get("prompt_retention_flow"),
+            ai_config.get("prompt_additional_instructions")
+        ])
+        
+        logger.info(f"📝 Custom instructions present: {has_custom_instructions}")
+        if has_custom_instructions:
+            logger.info("🎯 RECREATION MODE should be activated")
+            logger.info("   Expected behavior: Create entirely new content, ignore original subject")
+            if ai_config.get("prompt_role"):
+                logger.info(f"   Role: {ai_config.get('prompt_role')[:100]}...")
+            if ai_config.get("prompt_script_structure"):
+                logger.info(f"   Structure provided: {len(ai_config.get('prompt_script_structure', ''))} chars")
+        else:
+            logger.info("🔧 IMPROVEMENT MODE - no custom instructions")
+        
+        # Determine processing path
+        large_transcript_threshold = processing_config.get("large_transcript_threshold", 20000)
+        expected_length = processing_config.get("ai", {}).get("length_in_chars", original_length)
+        will_use_chunked = expected_length > large_transcript_threshold
+        
+        logger.info(f"📊 Processing path decision:")
+        logger.info(f"   Expected length: {expected_length} chars")
+        logger.info(f"   Threshold: {large_transcript_threshold} chars") 
+        logger.info(f"   Will use chunked processing: {will_use_chunked}")
+        
+        if will_use_chunked:
+            logger.info("⚠️  CHUNKED PROCESSING will be used")
+            logger.info("   This uses different prompt generation logic!")
+            logger.info("   Master document creation will determine topic handling")
+        else:
+            logger.info("📄 STANDARD PROCESSING will be used")
+            logger.info("   Uses our new recreation mode prompts")
+        
+        logger.info("="*60)
+
         # Use the modified config for processing
         processor_result = process_transcript(video_dir, processing_config)
 
@@ -253,15 +345,13 @@ def youtube_to_audio(
             logger.info("=== Processing Details ===")
             logger.info("Processed as a single chunk (no chunking applied)")
 
-        logger.info(
-            f"Transcript processing complete. Concatenated result saved to {processed_file}"
-        )
-        logger.info(
-            f"Original transcript: {metadata.get('original_length', 0)} characters"
-        )
-        logger.info(
-            f"Processed transcript: {metadata.get('processed_length', 0)} characters"
-        )
+        # === PROCESSING RESULTS SUMMARY ===
+        logger.info("🎉 PROCESSING COMPLETE!")
+        logger.info("=" * 80)
+        logger.info(f"📁 Output file: {processed_file}")
+        logger.info(f"📊 RESULTS SUMMARY:")
+        logger.info(f"   📜 Original transcript: {metadata.get('original_length', 0):,} characters")
+        logger.info(f"   ✨ Processed transcript: {metadata.get('processed_length', 0):,} characters")
 
         # Calculate and log the length ratio
         original_length = metadata.get("original_length", 0)
@@ -269,24 +359,26 @@ def youtube_to_audio(
         length_ratio = processed_length / original_length if original_length > 0 else 0
         metadata["length_ratio"] = length_ratio
 
-        # Also calculate ratio to target if target was specified
+        # Enhanced target comparison
         if target_length:
             target_ratio = processed_length / target_length if target_length > 0 else 0
             metadata["target_ratio"] = target_ratio
-            logger.info(f"Target length: {target_length} characters")
-            logger.info(f"Ratio to target: {target_ratio:.2f}")
-
-            # Warning if output is significantly different from target
-            if target_ratio < 0.5:
-                logger.warning(
-                    f"Output is much shorter than requested ({target_ratio:.2f}x target length)"
-                )
-            elif target_ratio > 1.5:
-                logger.warning(
-                    f"Output is much longer than requested ({target_ratio:.2f}x target length)"
-                )
-
-        logger.info(f"Overall ratio to original: {length_ratio:.2f}")
+            
+            logger.info(f"   🎯 Target length: {target_length:,} characters")
+            logger.info(f"   📏 Ratio to target: {target_ratio:.2f}x")
+            
+            # More detailed accuracy assessment
+            if 0.8 <= target_ratio <= 1.2:
+                logger.info("   ✅ TARGET ACHIEVED - Within 20% of requested length!")
+            elif 0.5 <= target_ratio <= 1.5:
+                logger.info("   ⚠️ CLOSE TO TARGET - Within 50% of requested length")
+            elif target_ratio < 0.5:
+                logger.warning(f"   ❌ TOO SHORT - Output is {target_ratio:.2f}x target length")
+            else:
+                logger.warning(f"   ❌ TOO LONG - Output is {target_ratio:.2f}x target length")
+        
+        logger.info(f"   📈 Ratio to original: {length_ratio:.2f}x")
+        logger.info("=" * 80)
 
         # Verify that all chunks have been processed before starting TTS
         if "num_chunks" in metadata and metadata["num_chunks"] > 1:
