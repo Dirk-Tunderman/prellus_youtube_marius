@@ -45,7 +45,7 @@ if not os.environ.get("GOOGLE_API_KEY") and os.environ.get("GEMINI_API_KEY"):
     os.environ["GOOGLE_API_KEY"] = os.environ.get("GEMINI_API_KEY")
 
 from src.transcript_pipeline.fetcher.fetch_and_store import fetch_transcript
-from src.transcript_pipeline.processor.ai_processor import process_transcript
+from src.transcript_pipeline.processor.simple_processor import process_simple_transcript
 from src.transcript_pipeline.tts.tts_generator import generate_audio_from_transcript
 
 # Configure logging
@@ -79,6 +79,69 @@ def load_config(config_path="app/config/config.yaml"):
         return {}
 
 
+def process_transcript_simple(video_dir: str, config: dict) -> dict:
+    """
+    Wrapper function to process transcript using simple processor.
+
+    This maintains compatibility with the old process_transcript interface
+    while using the new simplified processor.
+
+    Args:
+        video_dir: Path to the video directory
+        config: Configuration dictionary
+
+    Returns:
+        Dictionary with processed_file and metadata for compatibility
+    """
+    import os
+    import json
+
+    # Load the raw transcript
+    transcript_path = os.path.join(video_dir, "raw", "transcript.json")
+    if not os.path.exists(transcript_path):
+        raise FileNotFoundError(f"Transcript not found at {transcript_path}")
+
+    with open(transcript_path, "r", encoding="utf-8") as f:
+        transcript_data = json.load(f)
+
+    # Extract transcript text
+    if isinstance(transcript_data, list):
+        transcript_text = " ".join([entry.get("text", "") for entry in transcript_data])
+    else:
+        transcript_text = transcript_data.get("text", "")
+
+    # Create processed directory
+    processed_dir = os.path.join(video_dir, "processed")
+    os.makedirs(processed_dir, exist_ok=True)
+
+    # Process using simple processor
+    processed_text = process_simple_transcript(
+        transcript_text=transcript_text,
+        config=config,
+        output_dir=processed_dir,
+        mock_mode=False
+    )
+
+    # Save processed transcript
+    processed_file = os.path.join(processed_dir, "narrative_transcript.txt")
+    with open(processed_file, "w", encoding="utf-8") as f:
+        f.write(processed_text)
+
+    # Create metadata for compatibility
+    metadata = {
+        "original_length": len(transcript_text),
+        "processed_length": len(processed_text),
+        "length_ratio": len(processed_text) / len(transcript_text) if len(transcript_text) > 0 else 0,
+        "chunks_info": [],  # Simple processor doesn't use chunks
+        "processing_method": "simple"
+    }
+
+    return {
+        "processed_file": processed_file,
+        "metadata": metadata
+    }
+
+
 def youtube_to_audio(
     youtube_url: str,
     config: Dict[str, Any],
@@ -105,6 +168,9 @@ def youtube_to_audio(
         Dictionary with information about the generated output
     """
     try:
+        # Track processing time
+        start_time = time.time()
+
         # === COMPLETE INPUT DATA LOGGING ===
         logger.info("=" * 80)
         logger.info("📋 COMPLETE INPUT DATA FOR PROCESSING")
@@ -261,20 +327,14 @@ def youtube_to_audio(
         logger.info(f"Target transcript length: {target_length} characters")
         logger.info(f"Scaling factor: {scaling_factor:.2f}x")
 
-        # Force chunked processing for significant scaling factors, even for small transcripts
-        significant_scaling = scaling_factor > 1.5 or scaling_factor < 0.7
-
-        if significant_scaling:
-            # Force chunked processing by temporarily modifying large_transcript_threshold
-            original_threshold = processing_config.get(
-                "large_transcript_threshold", 20000
-            )
-            processing_config["large_transcript_threshold"] = min(
-                original_length - 1, original_threshold
-            )
-            logger.info(
-                f"Forcing chunked processing due to significant scaling factor ({scaling_factor:.2f}x)"
-            )
+        # Simple processor handles all scaling factors automatically
+        logger.info(f"✨ Simple processor will handle scaling factor: {scaling_factor:.2f}x")
+        if scaling_factor > 2.0:
+            logger.info("   📈 High expansion - will use multiple generation rounds")
+        elif scaling_factor < 0.5:
+            logger.info("   📉 High compression - will generate concise content")
+        else:
+            logger.info("   ⚖️ Moderate scaling - will adjust content appropriately")
 
         # === PROCESSING PATH DECISION LOGGING ===
         logger.info("="*60)
@@ -302,28 +362,20 @@ def youtube_to_audio(
         else:
             logger.info("🔧 IMPROVEMENT MODE - no custom instructions")
         
-        # Determine processing path
-        large_transcript_threshold = processing_config.get("large_transcript_threshold", 20000)
+        # New simplified processing approach
         expected_length = processing_config.get("ai", {}).get("length_in_chars", original_length)
-        will_use_chunked = expected_length > large_transcript_threshold
-        
-        logger.info(f"📊 Processing path decision:")
-        logger.info(f"   Expected length: {expected_length} chars")
-        logger.info(f"   Threshold: {large_transcript_threshold} chars") 
-        logger.info(f"   Will use chunked processing: {will_use_chunked}")
-        
-        if will_use_chunked:
-            logger.info("⚠️  CHUNKED PROCESSING will be used")
-            logger.info("   This uses different prompt generation logic!")
-            logger.info("   Master document creation will determine topic handling")
-        else:
-            logger.info("📄 STANDARD PROCESSING will be used")
-            logger.info("   Uses our new recreation mode prompts")
-        
+
+        logger.info(f"🚀 NEW SIMPLIFIED PROCESSING APPROACH")
+        logger.info(f"   Original length: {original_length:,} chars")
+        logger.info(f"   Expected output: {expected_length:,} chars")
+        logger.info(f"   Scaling factor: {expected_length / original_length:.2f}x")
+        logger.info(f"   Method: Single unified processor with max token output")
+        logger.info(f"   Features: Master document + continuation generation")
+
         logger.info("="*60)
 
-        # Use the modified config for processing
-        processor_result = process_transcript(video_dir, processing_config)
+        # Use the modified config for processing with simple processor
+        processor_result = process_transcript_simple(video_dir, processing_config)
 
         processed_file = processor_result.get("processed_file")
         metadata = processor_result.get("metadata", {})
@@ -386,7 +438,24 @@ def youtube_to_audio(
                 f"All {metadata['num_chunks']} chunks have been processed and concatenated."
             )
 
+        # 🚀 EARLY RETURN: Complete transcript processing and return before audio generation
+        logger.info("🎉 TRANSCRIPT PROCESSING COMPLETE - RETURNING EARLY")
+        logger.info("   Audio generation will be skipped for this version")
+        logger.info("   Transcript is ready for use!")
+
+        return {
+            "status": "success",
+            "message": "Transcript processing completed successfully",
+            "transcript_file": processed_file,
+            "metadata": metadata,
+            "video_dir": video_dir,
+            "processing_time": time.time() - start_time,
+            "early_return": True,
+            "audio_skipped": True
+        }
+
         # Step 3: Generate audio ONLY after all chunks have been processed
+        # NOTE: This code is now unreachable due to early return above
         if not skip_tts:
             logger.info(f"Step 3: Generating audio from fully processed transcript")
 
@@ -549,38 +618,37 @@ def main():
             args.youtube_url, config, args.voice_pack, args.skip_tts, json_data
         )
 
-        # Print summary
-        print("\n" + "=" * 60)
-        print("YOUTUBE TO AUDIO PIPELINE COMPLETED SUCCESSFULLY")
-        print("=" * 60)
+        # Log summary
+        logger.info("\n" + "=" * 60)
+        logger.info("YOUTUBE TO AUDIO PIPELINE COMPLETED SUCCESSFULLY")
+        logger.info("=" * 60)
 
-        print(f"\nYouTube URL: {args.youtube_url}")
-        print(f"Project directory: {result['video_dir']}")
+        logger.info(f"\nYouTube URL: {args.youtube_url}")
+        logger.info(f"Project directory: {result['video_dir']}")
 
-        print("\nOutput files:")
-        print(f"- Raw transcript: {result['transcript_file']}")
-        print(f"- Processed transcript: {result['processed_file']}")
+        logger.info("\nOutput files:")
+        logger.info(f"- Raw transcript: {result['transcript_file']}")
+        logger.info(f"- Processed transcript: {result['processed_file']}")
 
         if not args.skip_tts:
-            print(f"- Audio file: {result['audio_file']}")
-            print(f"- Audio duration: {result['audio_duration']:.2f} seconds")
+            logger.info(f"- Audio file: {result['audio_file']}")
+            logger.info(f"- Audio duration: {result['audio_duration']:.2f} seconds")
 
-        print("\nProcessing statistics:")
-        print(f"- Chunks processed: {result['chunks_processed']}")
-        print(f"- Original length: {result['original_length']} characters")
-        print(f"- Processed length: {result['processed_length']} characters")
-        print(f"- Length ratio: {result['length_ratio']:.2f}")
-        print(f"- Total processing time: {result['processing_time']:.2f} seconds")
+        logger.info("\nProcessing statistics:")
+        logger.info(f"- Chunks processed: {result['chunks_processed']}")
+        logger.info(f"- Original length: {result['original_length']} characters")
+        logger.info(f"- Processed length: {result['processed_length']} characters")
+        logger.info(f"- Length ratio: {result['length_ratio']:.2f}")
+        logger.info(f"- Total processing time: {result['processing_time']:.2f} seconds")
 
         if "target_length" in result:
-            print(f"- Target length: {result['target_length']} characters")
-            print(f"- Ratio to target: {result['target_ratio']:.2f}")
+            logger.info(f"- Target length: {result['target_length']} characters")
+            logger.info(f"- Ratio to target: {result['target_ratio']:.2f}")
 
         return 0
 
     except Exception as e:
         logger.error(f"Error: {str(e)}")
-        print(f"\nError: {str(e)}")
         return 1
 
 

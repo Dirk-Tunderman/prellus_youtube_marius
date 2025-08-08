@@ -96,7 +96,7 @@ def process_llm(
             logger.warning(f"Error loading model from config: {e}. Using default model.")
             model = "gemini-2.0-flash-lite"  # Fallback default
     else:
-        print(f"Using model: {model}")
+        logger.debug(f"Using model: {model}")
         
     # Check for model-specific API keys
     _check_api_key_for_model(model)
@@ -157,13 +157,26 @@ def process_llm(
         except Exception as e:
             last_error = e
             retry_count += 1
-            
-            logger.warning(f"API error on attempt {retry_count}/{max_retries}: {str(e)}")
-            
-            # Implement exponential backoff
+
+            # Check if this is an overload error
+            is_overload = "overloaded" in str(e).lower() or "529" in str(e)
+
+            if is_overload:
+                logger.warning(f"API overloaded on attempt {retry_count}/{max_retries}: Anthropic servers are experiencing high load")
+            else:
+                logger.warning(f"API error on attempt {retry_count}/{max_retries}: {str(e)}")
+
+            # Implement exponential backoff with longer waits for overload
             if retry_count < max_retries:
-                sleep_time = 2 ** retry_count
-                logger.info(f"Retrying in {sleep_time} seconds...")
+                if is_overload:
+                    # Much longer wait for overload: 15, 30, 60 seconds
+                    sleep_time = 15 * (2 ** (retry_count - 1))
+                    logger.info(f"API overloaded - waiting {sleep_time} seconds before retry...")
+                else:
+                    # Standard exponential backoff: 2, 4, 8 seconds
+                    sleep_time = 2 ** retry_count
+                    logger.info(f"Retrying in {sleep_time} seconds...")
+
                 time.sleep(sleep_time)
     
     # If we've exhausted retries, attempt fallback if configured

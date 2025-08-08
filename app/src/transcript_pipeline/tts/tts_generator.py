@@ -180,7 +180,7 @@ class TTSGenerator:
         self.logger.info(f"Starting TTS generation for text ({len(text)} characters)")
         
         # Ensure the output directory exists
-        print(f"Output path: {output_path}")
+        self.logger.debug(f"Output path: {output_path}")
         output_dir = os.path.dirname(output_path)
         os.makedirs(output_dir, exist_ok=True)
         
@@ -356,8 +356,8 @@ def generate_audio_from_transcript(transcript_dir: str, config: Dict[str, Any] =
     audio_dir = os.path.join(transcript_dir, "audio")
     os.makedirs(audio_dir, exist_ok=True)
     
-    #print the config
-    print(f"config in audio creation: {config}")
+    # Log the config for debugging
+    logger.debug(f"config in audio creation: {config}")
     # Path to processed transcript
     processed_dir = os.path.join(transcript_dir, "processed")
     if not os.path.exists(processed_dir):
@@ -438,7 +438,7 @@ def generate_audio_from_transcript(transcript_dir: str, config: Dict[str, Any] =
         config["tts"] = {}
     
     tts_config = config.get("ai", {})
-    print(f"tts_config before processing: {tts_config}")
+    logger.debug(f"tts_config before processing: {tts_config}")
     if "voice_pack" not in tts_config:
         tts_config["voice_pack"] = "bm_lewis"
     if "speed" not in tts_config:
@@ -498,12 +498,12 @@ if __name__ == "__main__":
     # Generate audio
     try:
         result = generate_audio_from_transcript(args.transcript_dir, config)
-        print(f"\nAudio generation completed:")
-        print(f"  Output: {result['output_path']}")
-        print(f"  Voice: {result.get('voice_used', 'bm_lewis')}")
-        print(f"  Speed: {result.get('speed_factor', 0.8)}x")
-        print(f"  Duration: {result['audio_duration_seconds']:.2f} seconds")
-        print(f"  Processing time: {result['processing_time_seconds']:.2f} seconds")
+        logger.info(f"\nAudio generation completed:")
+        logger.info(f"  Output: {result['output_path']}")
+        logger.info(f"  Voice: {result.get('voice_used', 'bm_lewis')}")
+        logger.info(f"  Speed: {result.get('speed_factor', 0.8)}x")
+        logger.info(f"  Duration: {result['audio_duration_seconds']:.2f} seconds")
+        logger.info(f"  Processing time: {result['processing_time_seconds']:.2f} seconds")
     except Exception as e:
         logger.exception(f"Error generating audio: {str(e)}")
         sys.exit(1)

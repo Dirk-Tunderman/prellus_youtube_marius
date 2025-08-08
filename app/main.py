@@ -14,6 +14,7 @@ import os
 import uuid
 import yaml
 import json
+import logging
 from pathlib import Path
 from flask import Flask, request, jsonify, send_file
 import shutil
@@ -26,6 +27,9 @@ sys.path.insert(0, project_root)
 
 # Import the youtube_to_audio function from the scripts directory
 from scripts.youtube_to_audio import youtube_to_audio, load_config
+
+# Set up logging
+logger = logging.getLogger(__name__)
 
 # Disable buffering to ensure prints are immediately visible in logs
 sys.stdout.reconfigure(line_buffering=True)
@@ -119,7 +123,7 @@ def get_all_prompts():
                         }
                     )
             except Exception as e:
-                print(f"Error reading prompt file {filename}: {e}")
+                logger.error(f"Error reading prompt file {filename}: {e}")
 
     # Sort by date (newest first)
     prompts.sort(key=lambda x: x.get("date", ""), reverse=True)
@@ -144,7 +148,7 @@ def get_prompt_by_id(unique_id):
             with open(file_path, "r", encoding="utf-8") as f:
                 return json.load(f)
         except Exception as e:
-            print(f"Error reading prompt file {filename}: {e}")
+            logger.error(f"Error reading prompt file {filename}: {e}")
             return None
 
     return None
@@ -163,24 +167,24 @@ def process_transcript():
         duration = data.get("duration", "Not provided")
         voice = data.get("voice", "Not provided")
         speed = data.get("speed", "Not provided")
-        print(f"\n\ndata in da beginnenning: {data}\n\n")
+        logger.debug(f"Request data: {data}")
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-        print("\n===== RECEIVED TRANSCRIPT PROCESSING REQUEST =====")
-        print(f"TIMESTAMP: {timestamp}")
-        print(f"URL: {url}")
-        print(f"TITLE: {title}")
-        print(f"Duration: {duration} minutes")
+        logger.info("===== RECEIVED TRANSCRIPT PROCESSING REQUEST =====")
+        logger.info(f"TIMESTAMP: {timestamp}")
+        logger.info(f"URL: {url}")
+        logger.info(f"TITLE: {title}")
+        logger.info(f"Duration: {duration} minutes")
 
         # Log structured prompt fields
-        print("=== STRUCTURED PROMPT FIELDS ===")
+        logger.info("=== STRUCTURED PROMPT FIELDS ===")
         for field, value in prompt_data.items():
-            print(
+            logger.info(
                 f"{field}: {value[:50]}..."
                 if len(str(value)) > 50
                 else f"{field}: {value}"
             )
-        print("=================================================\n")
+        logger.info("=================================================\n")
 
         # Format the structured prompt data for processing
         # Create a combined prompt with all fields
@@ -217,12 +221,12 @@ def process_transcript():
         # Detailed error handling for config loading
         try:
             config_path = os.path.join(project_root, "app/config/config.yaml")
-            print(f"Loading config from: {config_path}")
+            logger.info(f"Loading config from: {config_path}")
             if not os.path.exists(config_path):
                 raise FileNotFoundError(f"Config file not found at {config_path}")
 
             config = load_config(config_path)
-            print("Config loaded successfully")
+            logger.info("Config loaded successfully")
 
             # Inject structured prompt data into config
             if "ai" not in config:
@@ -238,29 +242,29 @@ def process_transcript():
             # Also store structured prompt data
             config["ai"]["prompt_structure"] = prompt_data
 
-            print("Injected structured prompt data into config")
+            logger.info("Injected structured prompt data into config")
 
         except Exception as config_error:
             error_msg = f"Config error: {str(config_error)}"
-            print(error_msg)
+            logger.error(error_msg)
             return jsonify({"error": error_msg}), 500
 
         # Run the youtube_to_audio pipeline with better error handling
         if url != "Not provided":
             try:
-                print(f"Starting youtube_to_audio for URL: {url}")
+                logger.info(f"Starting youtube_to_audio for URL: {url}")
                 # Pass json_data to the youtube_to_audio function which now includes the title
                 result = youtube_to_audio(json_data["url"], config, json_data=json_data)
-                print(f"Pipeline execution started for URL: {url}")
-                print(
+                logger.info(f"Pipeline execution started for URL: {url}")
+                logger.info(
                     f"Results will be saved to: {result.get('video_dir', 'Unknown location')}"
                 )
             except Exception as pipeline_error:
                 error_msg = f"Pipeline error: {str(pipeline_error)}"
-                print(error_msg)
+                logger.error(error_msg)
                 import traceback
 
-                print(traceback.format_exc())
+                logger.error(traceback.format_exc())
                 return jsonify({"error": error_msg}), 500
 
         # Return success response
@@ -274,10 +278,10 @@ def process_transcript():
         )
 
     except Exception as e:
-        print(f"General error: {str(e)}")
+        logger.error(f"General error: {str(e)}")
         import traceback
 
-        print(traceback.format_exc())
+        logger.error(traceback.format_exc())
         sys.stdout.flush()
         return jsonify({"error": str(e)}), 500
 
@@ -285,7 +289,7 @@ def process_transcript():
 @app.route("/api/transcripts", methods=["GET"])
 def get_transcripts():
     """Return a list of mock transcripts"""
-    print("Getting transcript list")
+    logger.info("Getting transcript list")
     sys.stdout.flush()  # Force flush the output
     return jsonify(
         [
@@ -313,7 +317,7 @@ def get_transcripts():
 @app.route("/api/audio/generate/<transcript_id>", methods=["POST"])
 def generate_audio(transcript_id):
     """Generate audio for a transcript"""
-    print(f"Generating audio for transcript: {transcript_id}")
+    logger.info(f"Generating audio for transcript: {transcript_id}")
     sys.stdout.flush()  # Force flush the output
     return jsonify(
         {
@@ -337,12 +341,12 @@ def save_prompt():
         if not prompt_name or len(prompt_name.strip()) == 0:
             prompt_name = "Unnamed Prompt"
 
-        print(f"Saving prompt: {prompt_name}")
+        logger.info(f"Saving prompt: {prompt_name}")
 
         # Save the prompt
         result = save_prompt_to_file(prompt_data, prompt_name)
 
-        print(f"Prompt saved successfully: {result['filename']}")
+        logger.info(f"Prompt saved successfully: {result['filename']}")
         return jsonify(
             {
                 "success": True,
@@ -353,10 +357,10 @@ def save_prompt():
         )
 
     except Exception as e:
-        print(f"Error saving prompt: {str(e)}")
+        logger.error(f"Error saving prompt: {str(e)}")
         import traceback
 
-        print(traceback.format_exc())
+        logger.error(traceback.format_exc())
         return jsonify({"success": False, "error": str(e)}), 500
 
 
@@ -367,7 +371,7 @@ def list_prompts():
         prompts = get_all_prompts()
         return jsonify(prompts)
     except Exception as e:
-        print(f"Error listing prompts: {str(e)}")
+        logger.error(f"Error listing prompts: {str(e)}")
         return jsonify({"success": False, "error": str(e)}), 500
 
 
@@ -394,14 +398,14 @@ def get_prompt(prompt_id):
         else:
             return jsonify({"success": False, "error": "Prompt not found"}), 404
     except Exception as e:
-        print(f"Error retrieving prompt: {str(e)}")
+        logger.error(f"Error retrieving prompt: {str(e)}")
         return jsonify({"success": False, "error": str(e)}), 500
 
 
 @app.route("/api/test", methods=["GET"])
 def test():
     """Test endpoint to verify API is working"""
-    print("API test endpoint accessed")
+    logger.info("API test endpoint accessed")
     sys.stdout.flush()  # Force flush the output
     return jsonify({"status": "ok", "message": "API is working on port 5001"})
 
@@ -468,18 +472,18 @@ def delete_prompt(prompt_id):
         if os.path.exists(file_path):
             # Delete the file
             os.remove(file_path)
-            print(f"Prompt {prompt_id} deleted successfully")
+            logger.info(f"Prompt {prompt_id} deleted successfully")
             return jsonify(
                 {"success": True, "message": f"Prompt {prompt_id} deleted successfully"}
             )
         else:
-            print(f"Prompt {prompt_id} not found for deletion")
+            logger.warning(f"Prompt {prompt_id} not found for deletion")
             return jsonify({"success": False, "error": "Prompt not found"}), 404
     except Exception as e:
-        print(f"Error deleting prompt: {str(e)}")
+        logger.error(f"Error deleting prompt: {str(e)}")
         import traceback
 
-        print(traceback.format_exc())
+        logger.error(traceback.format_exc())
         return jsonify({"success": False, "error": str(e)}), 500
 
 
@@ -496,7 +500,7 @@ def get_projects():
         # List all directories in the transcripts folder
         for project_name in os.listdir(transcripts_dir):
             project_path = os.path.join(transcripts_dir, project_name)
-            print(f"Project path: {project_path}")
+            logger.debug(f"Project path: {project_path}")
             # Skip non-directories and hidden folders
             if not os.path.isdir(project_path) or project_name.startswith("."):
                 continue
@@ -509,7 +513,7 @@ def get_projects():
                     with open(metadata_path, "r", encoding="utf-8") as f:
                         metadata = json.load(f)
                 except Exception as e:
-                    print(f"Error reading metadata for {project_name}: {e}")
+                    logger.error(f"Error reading metadata for {project_name}: {e}")
 
             # Extract date safely - ensure it's a string
             date_value = metadata.get("timestamp", "Unknown")
@@ -548,10 +552,10 @@ def get_projects():
         return jsonify(projects)
 
     except Exception as e:
-        print(f"Error getting projects: {str(e)}")
+        logger.error(f"Error getting projects: {str(e)}")
         import traceback
 
-        print(traceback.format_exc())
+        logger.error(traceback.format_exc())
         return jsonify({"error": str(e)}), 500
 
 
@@ -576,7 +580,7 @@ def get_transcript(project_id):
             return jsonify({"error": "Transcript not found"}), 404
 
     except Exception as e:
-        print(f"Error getting transcript: {str(e)}")
+        logger.error(f"Error getting transcript: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 
@@ -624,7 +628,7 @@ def download_transcript(project_id):
             return jsonify({"error": "Transcript file not found"}), 404
 
     except Exception as e:
-        print(f"Error downloading transcript: {str(e)}")
+        logger.error(f"Error downloading transcript: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 
@@ -651,14 +655,14 @@ def download_audio(project_id, filename):
             return jsonify({"error": "Audio file not found"}), 404
 
     except Exception as e:
-        print(f"Error downloading audio: {str(e)}")
+        logger.error(f"Error downloading audio: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 
 @app.route("/api/projects/<project_id>", methods=["DELETE"])
 def delete_project(project_id):
     """Delete an entire project folder"""
-    print(f"Deleting project: {project_id}")
+    logger.info(f"Deleting project: {project_id}")
     try:
         # Security check to prevent directory traversal attacks
         if ".." in project_id or project_id.startswith("/"):
@@ -669,7 +673,7 @@ def delete_project(project_id):
         if os.path.exists(project_path) and os.path.isdir(project_path):
             # Delete the entire project directory
             shutil.rmtree(project_path)
-            print(f"Project {project_id} deleted successfully")
+            logger.info(f"Project {project_id} deleted successfully")
 
             return jsonify(
                 {
@@ -681,10 +685,10 @@ def delete_project(project_id):
             return jsonify({"error": "Project not found"}), 404
 
     except Exception as e:
-        print(f"Error deleting project: {str(e)}")
+        logger.error(f"Error deleting project: {str(e)}")
         import traceback
 
-        print(traceback.format_exc())
+        logger.error(traceback.format_exc())
         return jsonify({"error": str(e)}), 500
 
 
@@ -704,7 +708,7 @@ def get_api_keys():
         # Return only which keys are configured (true/false), not the actual keys
         return jsonify(api_keys)
     except Exception as e:
-        print(f"Error retrieving API keys: {str(e)}")
+        logger.error(f"Error retrieving API keys: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 
@@ -754,11 +758,11 @@ def save_api_key():
         # Also update current environment variables
         os.environ[env_var_name] = key
 
-        print(f"API key for {provider} saved successfully")
+        logger.info(f"API key for {provider} saved successfully")
         return jsonify({"success": True})
 
     except Exception as e:
-        print(f"Error saving API key: {str(e)}")
+        logger.error(f"Error saving API key: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 
@@ -797,13 +801,13 @@ def delete_api_key(provider):
             # Remove from current environment variables or set to empty
             os.environ[env_var_name] = ""
 
-            print(f"API key for {provider} deleted successfully")
+            logger.info(f"API key for {provider} deleted successfully")
             return jsonify({"success": True})
         else:
             return jsonify({"error": f"No API key found for {provider}"}), 404
 
     except Exception as e:
-        print(f"Error deleting API key: {str(e)}")
+        logger.error(f"Error deleting API key: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 
@@ -830,7 +834,7 @@ def get_default_model():
         return jsonify({"model": model})
 
     except Exception as e:
-        print(f"Error retrieving default model: {str(e)}")
+        logger.error(f"Error retrieving default model: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 
@@ -864,11 +868,11 @@ def save_default_model():
         with open(config_path, "w") as f:
             yaml.dump(config, f)
 
-        print(f"Default model set to: {model}")
+        logger.info(f"Default model set to: {model}")
         return jsonify({"success": True})
 
     except Exception as e:
-        print(f"Error saving default model: {str(e)}")
+        logger.error(f"Error saving default model: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 
@@ -941,7 +945,7 @@ def get_available_models():
         return jsonify(available_models)
 
     except Exception as e:
-        print(f"Error retrieving available models: {str(e)}")
+        logger.error(f"Error retrieving available models: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 
@@ -972,19 +976,19 @@ def process_with_model():
         return process_transcript(process_data)
 
     except Exception as e:
-        print(f"Error in model override processing: {str(e)}")
+        logger.error(f"Error in model override processing: {str(e)}")
         import traceback
 
-        print(traceback.format_exc())
+        logger.error(traceback.format_exc())
         return jsonify({"error": str(e)}), 500
 
 
 if __name__ == "__main__":
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print(f"\n========== YouTube Transcript Processor API ==========")
-    print(f"STARTED AT: {timestamp}")
-    print(f"Server running at: http://localhost:5001")
-    print(f"Test the API at: http://localhost:5001/api/test")
-    print(f"======================================================\n")
+    logger.info(f"\n========== YouTube Transcript Processor API ==========")
+    logger.info(f"STARTED AT: {timestamp}")
+    logger.info(f"Server running at: http://localhost:5001")
+    logger.info(f"Test the API at: http://localhost:5001/api/test")
+    logger.info(f"======================================================\n")
     sys.stdout.flush()  # Force flush the output
     app.run(debug=True, host="0.0.0.0", port=5001)
