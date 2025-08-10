@@ -141,6 +141,14 @@ def process_llm(
                     {"role": "user", "content": context}
                 ]
                 
+                # Log the actual parameters being sent
+                logger.info(f"🔧 API Call Parameters:")
+                logger.info(f"   Model: {formatted_model}")
+                logger.info(f"   Max tokens: {params.get('max_tokens', 'not set')}")
+                logger.info(f"   Temperature: {params.get('temperature', 'not set')}")
+                logger.info(f"   System prompt length: {len(system_prompt or ''):,} chars")
+                logger.info(f"   User message length: {len(context):,} chars")
+
                 # Make the API call
                 response = litellm.completion(
                     model=formatted_model,

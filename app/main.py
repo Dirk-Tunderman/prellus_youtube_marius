@@ -26,7 +26,7 @@ project_root = str(Path(__file__).parent.parent)
 sys.path.insert(0, project_root)
 
 # Import the youtube_to_audio function from the scripts directory
-from scripts.youtube_to_audio import youtube_to_audio, load_config
+from scripts.youtube_to_transcript import youtube_to_transcript, load_config
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -254,7 +254,7 @@ def process_transcript():
             try:
                 logger.info(f"Starting youtube_to_audio for URL: {url}")
                 # Pass json_data to the youtube_to_audio function which now includes the title
-                result = youtube_to_audio(json_data["url"], config, json_data=json_data)
+                result = youtube_to_transcript(json_data["url"], config, json_data=json_data)
                 logger.info(f"Pipeline execution started for URL: {url}")
                 logger.info(
                     f"Results will be saved to: {result.get('video_dir', 'Unknown location')}"

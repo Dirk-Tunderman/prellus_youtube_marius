@@ -52,8 +52,8 @@ def test_new_method():
     
     try:
         # Import and test the processor
-        # Import the simple processor directly to avoid TTS dependencies
-        from src.transcript_pipeline.processor.simple_processor import process_simple_transcript
+        # Import the simple processor from new structure
+        from src.core.processor.simple_processor import process_simple_transcript
         
         # Create a test output directory
         test_output_dir = os.path.join(transcript_dir, "test_simple_output")

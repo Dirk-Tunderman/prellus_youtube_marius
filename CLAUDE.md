@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a YouTube Transcript Processor application with a React frontend and Flask backend that processes YouTube video transcripts using AI and generates audio narration. The application follows a microservices architecture with clear separation between the frontend (port 5173), backend API (port 5001), and processing pipeline components.
+YouTube Transcript Processor - A React/Flask application that fetches YouTube video transcripts and processes them using AI providers (OpenAI, Anthropic, Google Gemini, DeepSeek). The system uses a response-aware processing approach with dynamic catch-up for precise length control and multi-response generation.
 
 ## Essential Commands
 
@@ -45,7 +45,7 @@ cd frontend && npm run dev                              # Frontend
 ```bash
 cd frontend
 npm install        # Install dependencies
-npm run dev        # Start development server
+npm run dev        # Start development server (port 5173)
 npm run build      # Build for production
 npm run lint       # Run ESLint
 ```
@@ -56,7 +56,7 @@ cd app
 python -m venv .venv                    # Create virtual environment
 source .venv/bin/activate               # Activate (macOS/Linux)
 pip install -r requirements.txt         # Install dependencies
-python main.py                          # Run Flask server
+python main.py                          # Run Flask server (port 5001)
 ```
 
 ## High-Level Architecture
@@ -66,38 +66,39 @@ python main.py                          # Run Flask server
 1. **Frontend (React + Vite)**
    - Port: 5173
    - Feature-based organization: transcript, config, downloads
-   - UI components: shadcn/ui with Radix UI primitives
-   - State management: React Context API + TanStack Query
+   - UI: shadcn/ui components with Radix UI primitives
+   - State: React Context API + TanStack Query for server state
    - Routing: React Router v7
 
 2. **Backend (Flask)**
-   - Port: 5001 (not 5000 due to macOS conflicts)
+   - Port: 5001 (avoiding macOS AirPlay conflict on 5000)
    - RESTful API with CORS enabled
    - Endpoints grouped by feature: transcripts, prompts, projects, config
-   - Processing pipeline integration
+   - File-based storage (no database)
 
-3. **Processing Pipeline**
+3. **Core Processing Pipeline** (`app/src/core/`)
    - **Fetcher Module**: YouTube transcript retrieval
-   - **AI Processor Module**: Multi-provider AI processing (OpenAI, Gemini, Claude, DeepSeek)
-   - **TTS Module**: Kokoro TTS for audio generation
-   - **Storage**: File-based with structured directories
+   - **Processor Module**: Response-aware AI processing with dynamic catch-up
+   - **Storage Module**: Structured file management
+   - Uses LiteLLM for unified AI provider interface
 
-### Data Flow
+### Processing Flow
 ```
-User Input → Frontend → Flask API → Processing Pipeline → External Services
-    ↓            ↓          ↓              ↓                    ↓
-UI Event → State/Context → HTTP → youtube_to_audio() → AI/TTS APIs
-    ↓            ↓          ↓              ↓                    ↓
-Re-render ← State Update ← JSON ← Processed Files ← Service Response
+User Input → Frontend → Flask API → Core Pipeline → AI Providers
+    ↓            ↓          ↓              ↓              ↓
+UI Event → State/Context → HTTP → youtube_to_transcript() → LiteLLM
+    ↓            ↓          ↓              ↓              ↓
+Re-render ← State Update ← JSON ← Processed Files ← AI Response
 ```
 
-### Key Design Patterns
+### Response-Aware Processing System
 
-1. **Pipeline Pattern**: Sequential processing stages in `youtube_to_audio()`
-2. **Provider Pattern**: Unified AI interface via LiteLLM
-3. **Context Pattern**: Feature-specific state management
-4. **Service Layer**: Centralized API communication in frontend
-5. **Configuration-Driven**: YAML-based configuration system
+The processor implements sophisticated multi-response generation:
+1. Creates master document with response planning
+2. Respects model-specific token limits (64K Claude, 16K OpenAI, etc.)
+3. Dynamic catch-up system for precise length control
+4. Seamless continuation across multiple API calls
+5. TTS-optimized formatting (though TTS currently disabled)
 
 ## Important Files and Locations
 
@@ -108,23 +109,29 @@ Re-render ← State Update ← JSON ← Processed Files ← Service Response
 
 ### Core Processing
 - `app/main.py` - Flask application and API routes
-- `app/scripts/youtube_to_audio.py` - Main processing pipeline
-- `app/src/transcript_pipeline/` - Processing modules
+- `app/scripts/youtube_to_transcript.py` - Main processing pipeline
+- `app/src/core/processor/simple_processor.py` - Response-aware AI processor
+- `app/src/core/fetcher/youtube_transcript.py` - YouTube transcript fetcher
+- `app/src/core/storage/transcript_storage.py` - File management
 
 ### Frontend Entry Points
 - `frontend/src/main.jsx` - Application entry
 - `frontend/src/App.jsx` - Main application component
 - `frontend/src/core/router.jsx` - Route definitions
+- `frontend/src/core/services/api.js` - API client
 
 ### Data Storage
-- `app/data/transcripts/` - Processed transcript projects
-- `app/data/stored_prompts/` - Saved prompt templates
+- `app/data/transcripts/<VIDEO_ID_TIMESTAMP>/` - Project directories
+  - `/raw/` - Original transcript
+  - `/processed/` - AI-processed content
+  - `/final/` - Final output
+  - `metadata.json` - Project metadata
 
 ## API Endpoints
 
 ### Transcript Processing
 - `POST /api/transcripts/process` - Process YouTube video
-- `GET /api/transcripts` - List transcripts (mock data)
+- `GET /api/transcripts` - List transcripts
 
 ### Prompt Management
 - `POST /api/prompts/save` - Save prompt template
@@ -136,7 +143,6 @@ Re-render ← State Update ← JSON ← Processed Files ← Service Response
 - `GET /api/projects` - List all projects
 - `GET /api/projects/<id>/transcript` - Get transcript text
 - `GET /api/projects/<id>/transcript/download` - Download transcript
-- `GET /api/projects/<id>/audio/<filename>` - Download audio
 - `DELETE /api/projects/<id>` - Delete project
 
 ### Configuration
@@ -151,34 +157,43 @@ Re-render ← State Update ← JSON ← Processed Files ← Service Response
 
 Required API keys (set in `.env`):
 - `OPENAI_API_KEY` - OpenAI GPT models
-- `GEMINI_API_KEY` - Google Gemini models
+- `GEMINI_API_KEY` or `GOOGLE_API_KEY` - Google Gemini models
 - `ANTHROPIC_API_KEY` - Claude models
 - `DEEPSEEK_API_KEY` - DeepSeek models
-- `QWEN_API_KEY` - Qwen models
+- `QWEN_API_KEY` - Qwen models (if used)
 
 ## Common Development Tasks
 
 ### Adding a new AI provider
 1. Add API key to `.env`
-2. Update `app/src/transcript_pipeline/processor/litellm_processing.py`
+2. Update provider configuration in `app/src/core/processor/simple_processor.py`
 3. Add model options to `frontend/src/core/registry/models.js`
 4. Update `/api/config/models` endpoint in `app/main.py`
 
 ### Debugging processing issues
 1. Check logs: `make logs SERVICE=backend`
-2. Look for errors in `app/main.py:process_transcript()`
-3. Check pipeline execution in `youtube_to_audio()`
-4. Verify API keys are set correctly
+2. Review `app/main.py:process_transcript()` for API errors
+3. Check `app/src/core/processor/simple_processor.py` for processing logic
+4. Verify API keys are set correctly in `.env`
+5. Check model token limits in processor configuration
 
 ### Frontend state debugging
 1. Check React Developer Tools for context values
 2. Monitor Network tab for API calls
-3. Check `frontend/src/core/services/api.js` for request handling
+3. Review TanStack Query cache in dev tools
+4. Check `frontend/src/core/services/api.js` for request handling
+
+### Testing new processing methods
+```bash
+cd app
+python test_new_method.py  # Test the new processing pipeline
+```
 
 ## Notes
 
-- Port 5001 is used instead of 5000 due to macOS AirPlay conflicts
+- Port 5001 is used for backend (not 5000) due to macOS AirPlay conflicts
 - The application uses file-based storage, not a database
-- TTS generation uses local Kokoro TTS, not an external API
 - All processing is synchronous - no background job queue
 - CORS is enabled for all routes in development
+- TTS generation code exists but is currently disabled in favor of transcript-only processing
+- The new "response-aware" processor handles long transcripts by intelligently splitting across multiple AI calls

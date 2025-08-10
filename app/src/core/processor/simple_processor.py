@@ -282,12 +282,19 @@ class SimpleTranscriptProcessor:
 You need to structure content for {response_plan['responses_needed']} responses:
 """
 
-        # Add response breakdown
+        # Add response breakdown with explicit section mapping
         for plan in response_plan["response_plan"]:
+            start_char = sum(p['target_chars'] for p in response_plan["response_plan"][:plan['response_num']-1])
+            end_char = start_char + plan['target_chars']
+            start_minutes = start_char / (180 * 4.7)
+            end_minutes = end_char / (180 * 4.7)
+
             prompt += f"""
-### Response {plan['response_num']}
-- Target: {plan['target_chars']:,} characters ({plan['percentage_of_total']:.1f}% of total)
-- Content: [Specify which chapters/sections go here]
+### Response {plan['response_num']} - CHARACTER RANGE: {start_char:,} to {end_char:,}
+- **Target Length**: {plan['target_chars']:,} characters ({plan['percentage_of_total']:.1f}% of total)
+- **Time Range**: {start_minutes:.1f} to {end_minutes:.1f} minutes of final content
+- **Content Sections**: [YOU MUST SPECIFY which parts/chapters/sections go in this character range]
+- **Character Breakdown**: [YOU MUST break down how characters are distributed within this response]
 """
 
         # Handle user structure
@@ -319,12 +326,32 @@ User did not provide specific structure. Create appropriate chapters/sections th
 
 ## OUTPUT REQUIREMENTS
 Create a master document that:
-1. {"Maps your provided structure to the response breakdown" if has_user_structure else "Creates appropriate structure for the response breakdown"}
-2. Specifies what content goes in each response
-3. Ensures smooth transitions between responses
-4. Maintains the user's tone and style throughout
 
-Generate the master document now.
+**CRITICAL - SECTION BREAKDOWN REQUIRED:**
+1. {"Map your provided structure to the response breakdown above" if has_user_structure else "Create logical sections/chapters that fit the response breakdown above"}
+2. **For EACH Response, specify EXACTLY:**
+   - Which sections/parts/chapters go in that character range
+   - Approximate character allocation per section within that response
+   - Key content points for each section
+   - Transition points between responses
+
+**EXAMPLE FORMAT (adapt to your content):**
+```
+Response 1 (0-50,000 characters):
+- Introduction Section (0-15,000 chars): Opening hook, context setting
+- Main Point 1 (15,000-35,000 chars): Core concept explanation
+- Transition (35,000-50,000 chars): Bridge to next response
+
+Response 2 (50,000-100,000 characters):
+- Main Point 2 (50,000-75,000 chars): Deep dive into topic
+- Examples Section (75,000-100,000 chars): Case studies and examples
+```
+
+3. Ensure smooth narrative flow across all responses
+4. Maintain the user's specified tone and style throughout
+5. **MOST IMPORTANT**: Be specific about character allocation - don't be vague!
+
+Generate the master document now with explicit section breakdown.
 """
 
         return prompt
@@ -336,18 +363,22 @@ Generate the master document now.
         response_plan: dict,
         output_dir: Optional[str] = None
     ) -> str:
-        """Generate content using response-aware approach."""
+        """Generate content using response-aware approach with dynamic catch-up system."""
 
         generated_content = ""
         target_length = response_plan["total_target"]
+        total_responses_planned = response_plan["responses_needed"]
 
         for response_info in response_plan["response_plan"]:
             response_num = response_info["response_num"]
             target_chars = response_info["target_chars"]
+            is_final_response = (response_num == total_responses_planned)
 
-            logger.info(f"🔄 Generating Response {response_num}/{response_plan['responses_needed']}")
+            logger.info(f"🔄 Generating Response {response_num}/{total_responses_planned}")
             logger.info(f"   Target: {target_chars:,} characters")
             logger.info(f"   Progress: {len(generated_content):,}/{target_length:,} characters")
+            if is_final_response:
+                logger.info(f"   🎬 FINAL RESPONSE - Story conclusion required")
 
             # Build response-specific prompt
             generation_prompt = self._build_response_prompt(
@@ -359,7 +390,16 @@ Generate the master document now.
             generation_prompt = self._ensure_input_fits(generation_prompt)
 
             # Generate content for this response
-            logger.info(f"🎯 Requesting {target_chars:,} characters...")
+            min_chars = int(target_chars * 0.85)
+            max_chars = int(target_chars * 1.15)
+            # Calculate tokens for this request
+            tokens_requested = self._chars_to_tokens(target_chars)
+
+            logger.info(f"🎯 EXPLICIT LENGTH REQUEST:")
+            logger.info(f"   Target: {target_chars:,} characters")
+            logger.info(f"   Acceptable range: {min_chars:,} - {max_chars:,} characters")
+            logger.info(f"   Progress so far: {len(generated_content):,} characters")
+            logger.info(f"   Tokens requested: {tokens_requested:,} tokens")
             try:
                 new_content = process_llm(
                     context="Generate the content as specified in the system prompt.",
@@ -388,10 +428,25 @@ Generate the master document now.
             generated_content += new_content
             actual_chars = len(new_content)
             precision = actual_chars / target_chars
+            min_chars = int(target_chars * 0.85)
+            max_chars = int(target_chars * 1.15)
+
+            # Check if within acceptable range
+            in_range = min_chars <= actual_chars <= max_chars
 
             logger.info(f"✅ Response {response_num} complete:")
             logger.info(f"   Generated: {actual_chars:,} characters")
+            logger.info(f"   Target: {target_chars:,} characters")
+            logger.info(f"   Acceptable range: {min_chars:,} - {max_chars:,}")
             logger.info(f"   Precision: {precision:.2f}x ({'+' if precision > 1 else ''}{(precision-1)*100:.1f}%)")
+            if in_range:
+                logger.info(f"   ✅ TARGET HIT - Within acceptable range!")
+            else:
+                logger.warning(f"   ❌ TARGET MISSED - Outside acceptable range!")
+                if actual_chars < min_chars:
+                    logger.warning(f"   📉 TOO SHORT by {min_chars - actual_chars:,} characters")
+                else:
+                    logger.warning(f"   📈 TOO LONG by {actual_chars - max_chars:,} characters")
 
             # Save intermediate results
             if output_dir:
@@ -399,6 +454,12 @@ Generate the master document now.
                 with open(response_path, "w", encoding="utf-8") as f:
                     f.write(new_content)
                 logger.info(f"💾 Saved response {response_num} to {response_path}")
+
+            # DYNAMIC CATCH-UP SYSTEM: Check if we need to add more content
+            generated_content = self._handle_catch_up_if_needed(
+                generated_content, target_chars, response_num, is_final_response,
+                transcript_text, master_document, output_dir
+            )
 
             # Add delay between responses
             if response_num < response_plan["responses_needed"]:
@@ -413,6 +474,197 @@ Generate the master document now.
         logger.info(f"   Overall precision: {final_precision:.2f}x ({'+' if final_precision > 1 else ''}{(final_precision-1)*100:.1f}%)")
 
         return generated_content
+
+    def _handle_catch_up_if_needed(
+        self,
+        generated_content: str,
+        target_chars: int,
+        response_num: int,
+        is_final_response: bool,
+        transcript_text: str,
+        master_document: str,
+        output_dir: Optional[str] = None
+    ) -> str:
+        """Handle dynamic catch-up system after each response."""
+
+        # Get the content from the last response
+        last_response_start = len(generated_content) - len(generated_content.split('\n\n')[-1])
+        last_response_content = generated_content[last_response_start:]
+        actual_chars = len(last_response_content)
+
+        # Calculate acceptable range
+        min_chars = int(target_chars * 0.85)
+        max_chars = int(target_chars * 1.15)
+
+        # Check if within acceptable range
+        if min_chars <= actual_chars <= max_chars:
+            logger.info(f"   ✅ No catch-up needed - within acceptable range")
+            return generated_content
+
+        # Calculate deficit/excess
+        if actual_chars < min_chars:
+            deficit = min_chars - actual_chars
+            logger.warning(f"   📉 DEFICIT DETECTED: {deficit:,} characters short")
+
+            # Special handling for final response
+            if is_final_response:
+                logger.info(f"   🎬 Final response - checking if deficit is manageable")
+                if deficit <= target_chars * 0.3:  # If deficit is < 30% of target
+                    logger.info(f"   ✅ Small deficit ({deficit:,} chars) - letting final response handle it")
+                    return generated_content
+                else:
+                    logger.warning(f"   ⚠️ Large deficit ({deficit:,} chars) - need catch-up before finale")
+
+            # Generate catch-up content
+            return self._generate_catch_up_content(
+                generated_content, deficit, response_num, is_final_response, output_dir
+            )
+
+        elif actual_chars > max_chars:
+            excess = actual_chars - max_chars
+            logger.warning(f"   📈 EXCESS DETECTED: {excess:,} characters over target")
+            logger.info(f"   ℹ️ Excess content will be kept (better too much than too little)")
+            return generated_content
+
+        return generated_content
+
+    def _generate_catch_up_content(
+        self,
+        generated_content: str,
+        deficit: int,
+        response_num: int,
+        is_final_response: bool,
+        output_dir: Optional[str] = None
+    ) -> str:
+        """Generate catch-up content to fill deficit."""
+
+        catch_up_id = f"{response_num}A"
+        logger.info(f"🔄 Generating Catch-up {catch_up_id}")
+        logger.info(f"   Target: {deficit:,} characters (filling deficit)")
+
+        # Build catch-up prompt
+        catch_up_prompt = self._build_catch_up_prompt(generated_content, deficit, is_final_response)
+
+        # Ensure prompt fits input window
+        catch_up_prompt = self._ensure_input_fits(catch_up_prompt)
+
+        # Generate catch-up content
+        try:
+            catch_up_content = process_llm(
+                context="Generate the catch-up content as specified in the system prompt.",
+                system_prompt=catch_up_prompt,
+                model=self.model,
+                max_tokens=self._chars_to_tokens(deficit),
+                temperature=0.7
+            )
+        except Exception as e:
+            logger.error(f"❌ Catch-up generation failed: {e}")
+            logger.info(f"   Continuing without catch-up...")
+            return generated_content
+
+        # Log catch-up results
+        catch_up_chars = len(catch_up_content)
+        catch_up_precision = catch_up_chars / deficit
+
+        logger.info(f"✅ Catch-up {catch_up_id} complete:")
+        logger.info(f"   Generated: {catch_up_chars:,} characters")
+        logger.info(f"   Target: {deficit:,} characters")
+        logger.info(f"   Precision: {catch_up_precision:.2f}x ({'+' if catch_up_precision > 1 else ''}{(catch_up_precision-1)*100:.1f}%)")
+
+        # Save catch-up content
+        if output_dir:
+            catch_up_path = os.path.join(output_dir, f"response_{catch_up_id}.txt")
+            with open(catch_up_path, "w", encoding="utf-8") as f:
+                f.write(catch_up_content)
+            logger.info(f"💾 Saved catch-up {catch_up_id} to {catch_up_path}")
+
+        # Combine content
+        combined_content = generated_content + catch_up_content
+        logger.info(f"   📊 Total after catch-up: {len(combined_content):,} characters")
+
+        return combined_content
+
+    def _build_catch_up_prompt(
+        self,
+        generated_content: str,
+        deficit: int,
+        is_final_response: bool
+    ) -> str:
+        """Build prompt for catch-up content generation."""
+
+        # Get user instructions
+        user_instructions = self._extract_user_instructions()
+
+        # Get context from recent content (last 3000 characters)
+        context_chars = min(3000, len(generated_content))
+        recent_content = generated_content[-context_chars:] if context_chars > 0 else ""
+
+        # Calculate acceptable range for catch-up
+        min_chars = int(deficit * 0.85)
+        max_chars = int(deficit * 1.15)
+
+        prompt = f"""# CATCH-UP CONTENT GENERATION
+
+## TTS OUTPUT INSTRUCTIONS (CRITICAL)
+You must generate text that will be read aloud by a Text-to-Speech (TTS) system. Follow these strict formatting rules:
+
+**Mandatory Requirements:**
+- Output ONLY the actual spoken words - no descriptions, actions, or meta-text
+- NEVER include stage directions like *laughs*, [pause], (sighs), ::thinking::, or any text in brackets, parentheses, or asterisks
+- NEVER use formatting markers such as **bold**, *italics*, or any markdown/HTML
+- Write everything exactly as it should be pronounced out loud
+- Spell out ALL numbers as words: 3 → "three", 2025 → "two thousand twenty-five"
+- Convert ALL symbols to words: @ → "at", # → "hashtag", % → "percent", & → "and"
+- Expand ALL abbreviations: Dr. → "Doctor", vs. → "versus", etc. → "et cetera"
+
+## YOUR ROLE
+{user_instructions['role']}
+
+## RECENT CONTENT (for context)
+{recent_content}
+
+## YOUR TASK - CATCH-UP EXTENSION
+You need to CONTINUE the story/content seamlessly from where it left off.
+
+**🎯 LENGTH REQUIREMENT (CRITICAL - NON-NEGOTIABLE):**
+
+🚨 **ABSOLUTE MINIMUM: {deficit:,} CHARACTERS** 🚨
+🚨 **YOU MUST OUTPUT AT LEAST {deficit:,} CHARACTERS** 🚨
+🚨 **ANYTHING UNDER {deficit:,} CHARACTERS IS COMPLETELY UNACCEPTABLE** 🚨
+
+- **TARGET: {deficit:,} characters**
+- **MINIMUM REQUIRED: {deficit:,} characters (NOT NEGOTIABLE)**
+- **PREFERRED RANGE: {deficit:,} to {max_chars:,} characters**
+- **MAXIMUM ACCEPTABLE: {int(deficit * 1.2):,} characters**
+
+🔥 **CRITICAL CATCH-UP INSTRUCTIONS:** 🔥
+- Your catch-up response MUST be AT LEAST {deficit:,} characters long
+- This is filling a deficit - you CANNOT write less than {deficit:,} characters
+- Count characters as you write - this is MANDATORY
+
+**CRITICAL CATCH-UP RULES:**
+1. **CONTINUE SEAMLESSLY** - Pick up exactly where the previous content ended
+2. **MAINTAIN TONE & STYLE** - Follow user's specified style: {user_instructions.get('tone_style', 'Professional, engaging')}
+3. **ADD SUBSTANTIAL CONTENT** - This is not filler, add meaningful content
+4. **DO NOT CONCLUDE** - {"This is NOT the ending - leave room for proper conclusion" if not is_final_response else "You may conclude if this completes the story naturally"}
+5. **NO REPETITION** - Don't repeat what was already said
+6. **NATURAL FLOW** - Content should feel like a natural continuation
+
+**🔍 MANDATORY CATCH-UP VERIFICATION:**
+1. Count the EXACT number of characters in your catch-up response
+2. Is it AT LEAST {deficit:,} characters? If NO, ADD MORE CONTENT IMMEDIATELY
+3. Is it between {deficit:,} and {int(deficit * 1.2):,} characters? If NO, adjust
+4. Does it continue seamlessly from previous content? If NO, fix the transition
+5. If you submit less than {deficit:,} characters, the catch-up has FAILED
+
+🚨 **REMEMBER: {deficit:,} CHARACTERS IS THE ABSOLUTE MINIMUM FOR THIS CATCH-UP** 🚨
+
+🚨 **GENERATE CATCH-UP CONTENT NOW - MINIMUM {deficit:,} CHARACTERS REQUIRED** 🚨
+
+**FINAL REMINDER: Your catch-up must be AT LEAST {deficit:,} characters. Anything less means the catch-up failed.**
+"""
+
+        return prompt
 
     def _build_response_prompt(
         self,
@@ -447,17 +699,78 @@ Generate the master document now.
 ## CONTEXT
 {"This is the FIRST response - begin the narrative" if response_num == 1 else f"Previous content (last 2000 chars): ...{previous_content[-2000:]}"}
 
+## TTS OUTPUT INSTRUCTIONS (CRITICAL)
+You must generate text that will be read aloud by a Text-to-Speech (TTS) system. Follow these strict formatting rules:
+
+**Mandatory Requirements:**
+
+Text Content Rules:
+- Output ONLY the actual spoken words - no descriptions, actions, or meta-text
+- NEVER include stage directions like *laughs*, [pause], (sighs), ::thinking::, or any text in brackets, parentheses, or asterisks
+- NEVER use formatting markers such as **bold**, *italics*, or any markdown/HTML
+- Write everything exactly as it should be pronounced out loud
+
+Number and Symbol Conversion:
+- Spell out ALL numbers as words: 3 → "three", 2025 → "two thousand twenty-five"
+- Convert ALL symbols to words: @ → "at", # → "hashtag", % → "percent", & → "and"
+
+Abbreviation and Acronym Handling:
+- Expand ALL abbreviations: Dr. → "Doctor", vs. → "versus", etc. → "et cetera"
+- For acronyms, spell them out with spaces: FBI → "F B I"
+
+Sentence Structure:
+- Keep sentences under 25 words when possible
+- Use periods for clear stops, commas for natural breathing points
+- Break complex ideas into multiple simple sentences
+
+**Forbidden Elements - You must NEVER include:**
+- Text within asterisks: *any text*
+- Text within brackets: [any text]
+- Text within parentheses for asides: (any text)
+- Bullet points or numbered lists
+- Sound effect descriptions
+- Action or emotional descriptions
+
 ## YOUR TASK
 Generate Response {response_num} content following the master document plan.
 
-**CRITICAL REQUIREMENTS:**
-- Generate approximately {target_chars:,} characters
+**🎯 LENGTH REQUIREMENT (CRITICAL - NON-NEGOTIABLE):**
+
+🚨 **ABSOLUTE MINIMUM: {target_chars:,} CHARACTERS** 🚨
+🚨 **YOU MUST OUTPUT AT LEAST {target_chars:,} CHARACTERS** 🚨
+🚨 **ANYTHING UNDER {target_chars:,} CHARACTERS IS COMPLETELY UNACCEPTABLE** 🚨
+
+- **TARGET: {target_chars:,} characters**
+- **MINIMUM REQUIRED: {target_chars:,} characters (NOT NEGOTIABLE)**
+- **PREFERRED RANGE: {target_chars:,} to {int(target_chars * 1.15):,} characters**
+- **MAXIMUM ACCEPTABLE: {int(target_chars * 1.2):,} characters**
+
+🔥 **CRITICAL INSTRUCTIONS:** 🔥
+- Your response MUST be AT LEAST {target_chars:,} characters long
+- Count characters as you write - this is MANDATORY
+- If you reach {target_chars:,} characters and the content feels complete, ADD MORE CONTENT
+- If you're under {target_chars:,} characters, you have FAILED the task
+- Better to write {int(target_chars * 1.1):,} characters than {int(target_chars * 0.9):,} characters
+
+**CONTENT REQUIREMENTS:**
 - Follow the master document structure for Response {response_num}
-- {"Begin the narrative according to the master document" if response_num == 1 else "Continue seamlessly from the previous content"}
+- {"Begin the narrative according to the master document" if response_num == 1 else f"Continue seamlessly from the previous content (you've generated {len(previous_content):,} characters so far)"}
 - Maintain the user's specified tone and style
 - {"Complete the narrative - this is the final response" if is_final_response else "Prepare content for continuation in the next response"}
+- **MOST IMPORTANT: Follow ALL TTS formatting rules above - output must be TTS-ready**
 
-Generate Response {response_num} now.
+**🔍 MANDATORY VERIFICATION BEFORE SUBMITTING:**
+1. Count the EXACT number of characters in your response
+2. Is it AT LEAST {target_chars:,} characters? If NO, ADD MORE CONTENT
+3. Is it between {target_chars:,} and {int(target_chars * 1.2):,} characters? If NO, adjust immediately
+4. Double-check your character count - this is the MOST IMPORTANT requirement
+5. If you submit less than {target_chars:,} characters, you have FAILED
+
+🚨 **REMEMBER: {target_chars:,} CHARACTERS IS THE ABSOLUTE MINIMUM** 🚨
+
+🚨 **GENERATE RESPONSE {response_num} NOW - MINIMUM {target_chars:,} CHARACTERS REQUIRED** 🚨
+
+**FINAL REMINDER: Your response must be AT LEAST {target_chars:,} characters. Anything less is unacceptable.**
 """
 
         return prompt
@@ -585,7 +898,8 @@ Continue the content now. Output EXACTLY {remaining_chars:,} characters."""
         if actual_tokens < estimated_tokens:
             logger.warning(f"⚠️ Token limit enforced: {estimated_tokens:,} tokens → {actual_tokens:,} tokens (API limit)")
 
-        logger.debug(f"Converting {chars:,} chars → {actual_tokens:,} tokens (max: {max_tokens_allowed:,})")
+        # Always log token conversion for debugging
+        logger.info(f"🔧 Token Conversion: {chars:,} chars → {actual_tokens:,} tokens (limit: {max_tokens_allowed:,})")
         return actual_tokens
 
 

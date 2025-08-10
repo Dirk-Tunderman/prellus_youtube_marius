@@ -44,9 +44,9 @@ if os.path.exists(env_path):
 if not os.environ.get("GOOGLE_API_KEY") and os.environ.get("GEMINI_API_KEY"):
     os.environ["GOOGLE_API_KEY"] = os.environ.get("GEMINI_API_KEY")
 
-from src.transcript_pipeline.fetcher.fetch_and_store import fetch_transcript
-from src.transcript_pipeline.processor.simple_processor import process_simple_transcript
-from src.transcript_pipeline.tts.tts_generator import generate_audio_from_transcript
+from src.core.fetcher.fetch_and_store import fetch_transcript
+from src.core.processor.simple_processor import process_simple_transcript
+from src.core.storage.transcript_storage import TranscriptStorage
 
 # Configure logging
 logging.basicConfig(
@@ -81,10 +81,7 @@ def load_config(config_path="app/config/config.yaml"):
 
 def process_transcript_simple(video_dir: str, config: dict) -> dict:
     """
-    Wrapper function to process transcript using simple processor.
-
-    This maintains compatibility with the old process_transcript interface
-    while using the new simplified processor.
+    Process transcript using simple processor with new storage system.
 
     Args:
         video_dir: Path to the video directory
@@ -93,45 +90,35 @@ def process_transcript_simple(video_dir: str, config: dict) -> dict:
     Returns:
         Dictionary with processed_file and metadata for compatibility
     """
-    import os
-    import json
+    # Initialize storage manager
+    storage = TranscriptStorage()
 
-    # Load the raw transcript
-    transcript_path = os.path.join(video_dir, "raw", "transcript.json")
-    if not os.path.exists(transcript_path):
-        raise FileNotFoundError(f"Transcript not found at {transcript_path}")
+    # Load raw transcript using storage manager
+    raw_data = storage.load_raw_transcript(video_dir)
+    transcript_text = raw_data["text"]
 
-    with open(transcript_path, "r", encoding="utf-8") as f:
-        transcript_data = json.load(f)
-
-    # Extract transcript text
-    if isinstance(transcript_data, list):
-        transcript_text = " ".join([entry.get("text", "") for entry in transcript_data])
-    else:
-        transcript_text = transcript_data.get("text", "")
-
-    # Create processed directory
-    processed_dir = os.path.join(video_dir, "processed")
-    os.makedirs(processed_dir, exist_ok=True)
+    if not transcript_text:
+        # Extract text from JSON data if plain text is empty
+        transcript_data = raw_data["data"]
+        if isinstance(transcript_data, list):
+            transcript_text = " ".join([entry.get("text", "") for entry in transcript_data])
+        else:
+            transcript_text = transcript_data.get("text", "")
 
     # Process using simple processor
     processed_text = process_simple_transcript(
         transcript_text=transcript_text,
         config=config,
-        output_dir=processed_dir,
+        output_dir=os.path.join(video_dir, "processed"),
         mock_mode=False
     )
 
-    # Save processed transcript
-    processed_file = os.path.join(processed_dir, "narrative_transcript.txt")
-    with open(processed_file, "w", encoding="utf-8") as f:
-        f.write(processed_text)
+    # Save processed transcript using storage manager
+    processed_file = storage.save_processed_transcript(video_dir, processed_text)
 
     # Create metadata for compatibility
     metadata = {
-        "original_length": len(transcript_text),
         "processed_length": len(processed_text),
-        "length_ratio": len(processed_text) / len(transcript_text) if len(transcript_text) > 0 else 0,
         "chunks_info": [],  # Simple processor doesn't use chunks
         "processing_method": "simple"
     }
@@ -142,11 +129,9 @@ def process_transcript_simple(video_dir: str, config: dict) -> dict:
     }
 
 
-def youtube_to_audio(
+def youtube_to_transcript(
     youtube_url: str,
     config: Dict[str, Any],
-    voice_pack: Optional[str] = None,
-    skip_tts: bool = False,
     json_data: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """
@@ -176,8 +161,6 @@ def youtube_to_audio(
         logger.info("📋 COMPLETE INPUT DATA FOR PROCESSING")
         logger.info("=" * 80)
         logger.info(f"🔗 YouTube URL: {youtube_url}")
-        logger.info(f"⚙️ Voice Pack: {voice_pack}")
-        logger.info(f"⏭️ Skip TTS: {skip_tts}")
         
         if json_data:
             logger.info("📊 JSON Data Received:")
@@ -233,7 +216,6 @@ def youtube_to_audio(
 
         # Calculate target length based on requested duration (if provided)
         target_length = None
-        scaling_factor = 1.0
 
         if json_data and json_data.get("duration"):
             duration_minutes = json_data.get("duration")
@@ -260,18 +242,12 @@ def youtube_to_audio(
             logger.info(f"   ⚡ Effective reading speed: {effective_reading_speed:.1f} WPM")
             logger.info(f"   🔤 Average chars per word: {avg_chars_per_word}")
             logger.info(f"   🎯 Target length: {target_length} characters")
-            
-            # Show comparison with old calculation for reference
-            old_calculation = int(duration_minutes * 239 * 5)
-            logger.info(f"   📊 Old calculation would be: {old_calculation} characters")
-            logger.info(f"   📉 New calculation is {target_length/old_calculation:.2f}x the old value")
         else:
             # Fallback for when no duration is specified
             target_length = original_length
             logger.info("⚠️ No duration specified, using original length")
 
-        # Calculate scaling factor
-        scaling_factor = target_length / original_length if original_length > 0 else 1.0
+        # Target length is now the primary metric
 
         # Create a copy of the config
         processing_config = config.copy()
@@ -321,20 +297,9 @@ def youtube_to_audio(
         processing_config["ai"]["length"] = json_data.get("duration")
         processing_config["ai"]["length_in_chars"] = target_length
 
-        # Log scaling information
+        # Log target information
         logger.info(f"Target duration: {json_data.get('duration')} minutes")
-        logger.info(f"Original transcript length: {original_length} characters")
         logger.info(f"Target transcript length: {target_length} characters")
-        logger.info(f"Scaling factor: {scaling_factor:.2f}x")
-
-        # Simple processor handles all scaling factors automatically
-        logger.info(f"✨ Simple processor will handle scaling factor: {scaling_factor:.2f}x")
-        if scaling_factor > 2.0:
-            logger.info("   📈 High expansion - will use multiple generation rounds")
-        elif scaling_factor < 0.5:
-            logger.info("   📉 High compression - will generate concise content")
-        else:
-            logger.info("   ⚖️ Moderate scaling - will adjust content appropriately")
 
         # === PROCESSING PATH DECISION LOGGING ===
         logger.info("="*60)
@@ -365,12 +330,10 @@ def youtube_to_audio(
         # New simplified processing approach
         expected_length = processing_config.get("ai", {}).get("length_in_chars", original_length)
 
-        logger.info(f"🚀 NEW SIMPLIFIED PROCESSING APPROACH")
-        logger.info(f"   Original length: {original_length:,} chars")
-        logger.info(f"   Expected output: {expected_length:,} chars")
-        logger.info(f"   Scaling factor: {expected_length / original_length:.2f}x")
-        logger.info(f"   Method: Single unified processor with max token output")
-        logger.info(f"   Features: Master document + continuation generation")
+        logger.info(f"🚀 SIMPLIFIED PROCESSING APPROACH")
+        logger.info(f"   Target output: {expected_length:,} chars")
+        logger.info(f"   Method: Response-aware processor with optimal chunking")
+        logger.info(f"   Features: Master document + response planning")
 
         logger.info("="*60)
 
@@ -386,12 +349,11 @@ def youtube_to_audio(
             logger.info("=== Chunk Processing Details ===")
             logger.info(f"Total chunks processed: {len(chunks_info)}")
             for i, chunk_info in enumerate(chunks_info):
-                original_len = chunk_info.get("original_length", 0)
                 processed_len = chunk_info.get("processed_length", 0)
                 target_len = chunk_info.get("target_length", processed_len)
-                ratio = processed_len / original_len if original_len > 0 else 0
+                target_ratio = processed_len / target_len if target_len > 0 else 0
                 logger.info(
-                    f"Chunk {i+1}: Original: {original_len} chars, Target: {target_len} chars, Actual: {processed_len} chars, Ratio: {ratio:.2f}"
+                    f"Chunk {i+1}: Target: {target_len} chars, Actual: {processed_len} chars, Target Ratio: {target_ratio:.2f}x"
                 )
         else:
             logger.info("=== Processing Details ===")
@@ -402,14 +364,10 @@ def youtube_to_audio(
         logger.info("=" * 80)
         logger.info(f"📁 Output file: {processed_file}")
         logger.info(f"📊 RESULTS SUMMARY:")
-        logger.info(f"   📜 Original transcript: {metadata.get('original_length', 0):,} characters")
         logger.info(f"   ✨ Processed transcript: {metadata.get('processed_length', 0):,} characters")
 
-        # Calculate and log the length ratio
-        original_length = metadata.get("original_length", 0)
+        # Get processed length for target comparison
         processed_length = metadata.get("processed_length", 0)
-        length_ratio = processed_length / original_length if original_length > 0 else 0
-        metadata["length_ratio"] = length_ratio
 
         # Enhanced target comparison
         if target_length:
@@ -429,7 +387,7 @@ def youtube_to_audio(
             else:
                 logger.warning(f"   ❌ TOO LONG - Output is {target_ratio:.2f}x target length")
         
-        logger.info(f"   📈 Ratio to original: {length_ratio:.2f}x")
+
         logger.info("=" * 80)
 
         # Verify that all chunks have been processed before starting TTS
@@ -454,82 +412,7 @@ def youtube_to_audio(
             "audio_skipped": True
         }
 
-        # Step 3: Generate audio ONLY after all chunks have been processed
-        # NOTE: This code is now unreachable due to early return above
-        if not skip_tts:
-            logger.info(f"Step 3: Generating audio from fully processed transcript")
-
-            # Override voice pack if specified
-            tts_config = config.get("tts", {}).copy()
-            if voice_pack:
-                tts_config["voice_pack"] = voice_pack
-                logger.info(f"Using custom voice pack: {voice_pack}")
-
-            audio_result = generate_audio_from_transcript(video_dir, tts_config)
-            audio_file = audio_result["output_path"]
-            logger.info(f"Audio generated and saved to {audio_file}")
-
-            # Check if audio duration matches requested duration (if specified)
-            if json_data and json_data.get("duration"):
-                requested_duration_seconds = (
-                    json_data.get("duration") * 60
-                )  # Convert minutes to seconds
-                actual_duration_seconds = audio_result["audio_duration_seconds"]
-                duration_ratio = (
-                    actual_duration_seconds / requested_duration_seconds
-                    if requested_duration_seconds > 0
-                    else 0
-                )
-                logger.info(
-                    f"Requested duration: {requested_duration_seconds:.2f} seconds"
-                )
-                logger.info(
-                    f"Actual audio duration: {actual_duration_seconds:.2f} seconds"
-                )
-                logger.info(f"Duration ratio: {duration_ratio:.2f}")
-
-                # Warning if audio duration is far off from requested duration
-                if duration_ratio < 0.7 or duration_ratio > 1.3:
-                    logger.warning(
-                        f"Audio duration ({actual_duration_seconds:.2f}s) is significantly different from requested duration ({requested_duration_seconds:.2f}s)"
-                    )
-        else:
-            logger.info("Skipping audio generation (--skip-tts flag was used)")
-            audio_result = {
-                "output_path": None,
-                "audio_duration_seconds": 0,
-                "processing_time_seconds": 0,
-            }
-
-        # Return summary of results
-        result = {
-            "video_dir": video_dir,
-            "transcript_file": transcript_result["plain_text_path"],
-            "processed_file": processed_file,
-            "audio_file": audio_result["output_path"],
-            "audio_duration": audio_result["audio_duration_seconds"],
-            "processing_time": audio_result["processing_time_seconds"],
-            "chunks_processed": metadata.get("num_chunks", 1),
-            "original_length": metadata.get("original_length", 0),
-            "processed_length": metadata.get("processed_length", 0),
-            "length_ratio": length_ratio,
-        }
-
-        # Add target-related metrics if target was specified
-        if target_length:
-            result["target_length"] = target_length
-            result["target_ratio"] = (
-                processed_length / target_length if target_length > 0 else 0
-            )
-            result["requested_duration_minutes"] = json_data.get("duration")
-            if not skip_tts:
-                result["duration_ratio"] = (
-                    audio_result["audio_duration_seconds"]
-                    / (json_data.get("duration") * 60)
-                    if json_data.get("duration") > 0
-                    else 0
-                )
-
+        # Processing complete - transcript saved and ready
         return result
 
     except Exception as e:
@@ -539,7 +422,7 @@ def youtube_to_audio(
 
 def main():
     """Main function to parse arguments and run the pipeline."""
-    parser = argparse.ArgumentParser(description="YouTube to Audio Pipeline")
+    parser = argparse.ArgumentParser(description="YouTube to Transcript Pipeline")
     parser.add_argument("youtube_url", help="YouTube video URL to process")
     parser.add_argument(
         "--config",
@@ -547,17 +430,8 @@ def main():
         help="Path to configuration file",
     )
     parser.add_argument(
-        "--voice-pack",
-        help="Voice pack to use (e.g., af_bella for American Female Bella)",
-    )
-    parser.add_argument(
         "--model",
         help="AI model to use for transcript processing (e.g., gemini-2.0-flash-lite)",
-    )
-    parser.add_argument(
-        "--skip-tts",
-        action="store_true",
-        help="Skip TTS generation (process transcript only)",
     )
     parser.add_argument(
         "--prompt-id", help="ID of a saved prompt to use for processing"
@@ -613,9 +487,9 @@ def main():
                 logger.warning(f"Prompt file not found: {prompt_file}")
 
         # Run the pipeline
-        logger.info(f"Starting YouTube to Audio pipeline for {args.youtube_url}")
-        result = youtube_to_audio(
-            args.youtube_url, config, args.voice_pack, args.skip_tts, json_data
+        logger.info(f"Starting YouTube to Transcript pipeline for {args.youtube_url}")
+        result = youtube_to_transcript(
+            args.youtube_url, config, json_data
         )
 
         # Log summary

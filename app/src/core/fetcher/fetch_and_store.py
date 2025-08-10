@@ -17,7 +17,7 @@ import re
 from datetime import datetime
 from typing import Dict, Any, Optional
 
-from src.transcript_pipeline.fetcher.youtube_transcript import YouTubeTranscriptFetcher
+from src.core.fetcher.youtube_transcript import YouTubeTranscriptFetcher
 
 logger = logging.getLogger(__name__)
 
