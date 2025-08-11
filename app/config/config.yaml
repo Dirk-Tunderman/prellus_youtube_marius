@@ -1,14 +1,13 @@
 ai:
-  max_retries: 5  # Increased for better overload handling
-  max_tokens: 8192
-  model: claude-3-7-sonnet-20250219
-  retry_delay: 2
-  temperature: 0.7
-  # Fallback models for when primary model is overloaded
   fallback_enabled: true
   fallback_models:
-    - gemini-2.0-flash-lite  # Fast and reliable
-    - gpt-4o  # High quality alternative
+  - gemini-2.0-flash-lite
+  - gpt-4o
+  max_retries: 5
+  max_tokens: 8192
+  model: gpt-5
+  retry_delay: 2
+  temperature: 0.7
 chunked_processing:
   chunk_size: 25000
   max_output_length: 28000

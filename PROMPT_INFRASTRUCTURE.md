@@ -1,112 +1,182 @@
 # PROMPT_INFRASTRUCTURE.md
 
-This document provides a comprehensive overview of the prompt infrastructure used in the YouTube Transcript Processor's story generation system.
+This document provides a comprehensive overview of the **Enhanced Section-Aware Processing System** used in the YouTube Transcript Processor's story generation system.
 
 ## Table of Contents
 1. [System Architecture Overview](#system-architecture-overview)
-2. [Prompt Types and Usage](#prompt-types-and-usage)
-3. [Complete Prompt Templates](#complete-prompt-templates)
-4. [Length Handling Examples](#length-handling-examples)
-5. [Model-Specific Behaviors](#model-specific-behaviors)
-6. [Dynamic Features](#dynamic-features)
+2. [Enhanced Data Structures](#enhanced-data-structures)
+3. [Prompt Types and Usage](#prompt-types-and-usage)
+4. [Complete Prompt Templates](#complete-prompt-templates)
+5. [Time-Based Instructions](#time-based-instructions)
+6. [Section Tracking Examples](#section-tracking-examples)
+7. [Model-Specific Behaviors](#model-specific-behaviors)
+8. [Dynamic Features](#dynamic-features)
 
 ## System Architecture Overview
 
-The story generation system uses a **Response-Aware Processing System** with the following key components:
+The story generation system uses an **Enhanced Section-Aware Processing System** with the following key components:
 
 ### Processing Flow
 ```
-Input → Master Document Creation → Response Planning → Sequential Generation → Catch-up (if needed) → Final Output
+Input → Time Parsing → Master Outline Creation → Structured Data Generation → Section-Aware Generation → Section-Aware Catch-up → Final Output
 ```
 
+### Major Improvements (2025 Update)
+1. **Concise Master Documents**: 80% reduction in verbosity - outline format only, not full content
+2. **Structured Section Tracking**: Precise character boundaries with section-aware generation
+3. **Time-Based Instruction Processing**: Automatic conversion of time ranges to character allocations
+4. **Section-Aware Catch-up**: Context-aware deficit filling that respects section boundaries
+5. **Enhanced Progress Tracking**: Real-time section completion monitoring
+6. **Model-Aware Response Planning**: Clear breakpoints based on model output limits
+
 ### Key Innovations
-1. **Master Document with Response Planning**: Creates a structured plan before generation
-2. **Dynamic Length Calculation**: Based on duration, speed, and TTS reading rates
-3. **Response-Aware Generation**: Each response knows its position in the overall narrative
-4. **Catch-up System**: Ensures precise length targeting with additional generation rounds
+1. **Structured Master Documents**: Creates CONCISE outlines with precise section boundaries
+2. **Section-Aware Processing**: Each generation knows exactly which section it's working on
+3. **Time-to-Character Conversion**: Handles user instructions like "10-15 minutes about X"
+4. **CharacterBoundaryManager**: Real-time progress tracking with section context
+5. **Enhanced Catch-up System**: Section-aware deficit filling that maintains content boundaries
+
+## Enhanced Data Structures
+
+The new system introduces structured data models for precise section tracking:
+
+### SectionBoundary
+```python
+@dataclass
+class SectionBoundary:
+    section_id: str          # "1.1", "2.3"
+    title: str               # User-provided or auto-generated
+    start_char: int          # Exact start position
+    end_char: int            # Exact end position
+    target_chars: int        # Expected character count
+    content_type: str        # "introduction", "main_content", "transition", "conclusion"
+    key_points: List[str]    # Topics to cover
+    user_instructions: str   # Section-specific guidance
+    response_num: int        # Which LLM response generates this
+```
+
+### ResponseSection
+```python
+@dataclass
+class ResponseSection:
+    response_num: int                # 1, 2, 3, etc.
+    sections: List[SectionBoundary]  # All sections in this response
+    total_target_chars: int          # Total characters for this response
+    start_char: int                  # Response start position
+    end_char: int                    # Response end position
+    completion_status: str           # "pending", "in_progress", "completed"
+    actual_chars_generated: int      # Actual output
+```
+
+### MasterDocumentStructure
+```python
+@dataclass
+class MasterDocumentStructure:
+    total_target_chars: int               # Overall target
+    total_duration_minutes: float         # Expected duration
+    total_responses_needed: int           # Number of LLM calls
+    response_sections: List[ResponseSection]  # All response data
+    section_index: Dict[str, SectionBoundary]  # Quick lookup
+    model_name: str                       # Model being used
+    model_char_limit: int                 # Model's output limit
+```
+
+### CharacterBoundaryManager
+Provides real-time progress tracking:
+```python
+class CharacterBoundaryManager:
+    def update_progress(self, content: str) -> Dict[str, Any]
+    def get_next_target(self, current_chars: int) -> Tuple[str, int]
+    def get_section_context(self, section_id: str, current_chars: int) -> Dict[str, Any]
+```
 
 ## Prompt Types and Usage
 
-The system uses **5 main prompt types**:
+The enhanced system uses **6 main prompt types**:
 
 | Prompt Type | When Used | Purpose |
 |------------|-----------|---------|
-| **Master Document Creation** | Start of processing | Plans entire content structure and response breakdown |
-| **Response Generation** | For each response chunk | Generates specific portion of content |
-| **Catch-up Generation** | When response falls short | Fills deficit to meet length requirements |
+| **Concise Master Outline** | Start of processing | Creates structured outline (NOT content) with precise boundaries |
+| **Section-Aware Response Generation** | For each response chunk | Generates content with full section context |
+| **Section-Aware Catch-up** | When response falls short | Fills deficit while respecting section boundaries |
+| **Time-Based Instruction Processing** | During setup | Converts time ranges to character allocations |
 | **TTS Formatting Rules** | All generation prompts | Ensures output is TTS-ready |
-| **User Instructions** | All prompts | Integrates custom user requirements |
+| **User Instructions Integration** | All prompts | Integrates custom user requirements |
 
 ## Complete Prompt Templates
 
-### 1. Master Document Creation Prompt
+### 1. Enhanced Master Document Creation Prompt
 
-This prompt is used in `_build_master_document_prompt()` (lines 266-357 in simple_processor.py):
+**NEW CONCISE OUTLINE-ONLY APPROACH:**
 
-```python
-# MASTER DOCUMENT CREATION WITH RESPONSE PLANNING
-
-## TARGET SPECIFICATIONS
-- Total Length: {target_length:,} characters
-- Duration: ~{target_length // (180 * 4.7):.1f} minutes
-- Responses Needed: {response_plan['responses_needed']}
-
-## RESPONSE BREAKDOWN
-You need to structure content for {response_plan['responses_needed']} responses:
-
-### Response {plan['response_num']} - CHARACTER RANGE: {start_char:,} to {end_char:,}
-- **Target Length**: {plan['target_chars']:,} characters ({plan['percentage_of_total']:.1f}% of total)
-- **Time Range**: {start_minutes:.1f} to {end_minutes:.1f} minutes of final content
-- **Content Sections**: [YOU MUST SPECIFY which parts/chapters/sections go in this character range]
-- **Character Breakdown**: [YOU MUST break down how characters are distributed within this response]
-
-## USER-PROVIDED STRUCTURE (IMPORTANT - USE THIS)
-{user_instructions['script_structure']}
-
-**TASK**: Adapt the above user structure to fit the {response_plan['responses_needed']} response breakdown.
-Map user's chapters/sections to specific responses.
-
-## USER INSTRUCTIONS
-**Role:** {user_instructions['role']}
-**Tone & Style:** {user_instructions['tone_style'] or "Professional, engaging narrative style"}
-**Additional:** {user_instructions['additional_instructions'] or "None specified"}
-
-## ORIGINAL TRANSCRIPT
-{transcript_text[:10000]}{"..." if len(transcript_text) > 10000 else ""}
-
-## OUTPUT REQUIREMENTS
-Create a master document that:
-
-**CRITICAL - SECTION BREAKDOWN REQUIRED:**
-1. Map your provided structure to the response breakdown above
-2. **For EACH Response, specify EXACTLY:**
-   - Which sections/parts/chapters go in that character range
-   - Approximate character allocation per section within that response
-   - Key content points for each section
-   - Transition points between responses
-
-**EXAMPLE FORMAT (adapt to your content):**
 ```
-Response 1 (0-50,000 characters):
-- Introduction Section (0-15,000 chars): Opening hook, context setting
-- Main Point 1 (15,000-35,000 chars): Core concept explanation
-- Transition (35,000-50,000 chars): Bridge to next response
+You are a content structure planner. Create a CONCISE OUTLINE ONLY - no story content.
 
-Response 2 (50,000-100,000 characters):
-- Main Point 2 (50,000-75,000 chars): Deep dive into topic
-- Examples Section (75,000-100,000 chars): Case studies and examples
-```
+# STRICT RULES
+- Output ONLY section titles, boundaries, and brief topic notes (max 10 words per note)
+- NO narrative text, NO detailed content, NO full sentences
+- Use structured format EXACTLY as shown below
+- Each section gets ONE LINE of description maximum
 
-3. Ensure smooth narrative flow across all responses
-4. Maintain the user's specified tone and style throughout
-5. **MOST IMPORTANT**: Be specific about character allocation - don't be vague!
+# PROJECT SPECIFICATIONS
+Total Target: {target_length:,} characters (~{target_length // 250:,} words)
+Duration: ~{target_length // CHARS_PER_MINUTE_BASE:.1f} minutes reading time
+Model: {self.model} (Response limit: ~{model_char_limit:,} chars)
+Responses Required: {response_plan['responses_needed']}
 
-Generate the master document now with explicit section breakdown.
+# USER REQUIREMENTS
+Role: {user_instructions.get('role', 'Expert content creator')}
+Tone: {user_instructions.get('tone_style', 'Professional and engaging')}
+Structure: {script_structure if script_structure else 'Create appropriate structure'}
+
+# TIME-BASED INSTRUCTIONS CONVERTED TO CHARACTERS:
+- 10.0-15.0 min → [50,000-75,000] chars: Main topic discussion
+- 15.0-20.0 min → [75,000-100,000] chars: Examples and case studies
+
+# OUTPUT FORMAT (USE EXACTLY)
+
+## RESPONSE ALLOCATION
+Response 1: [0-50,000] chars
+Response 2: [50,000-100,000] chars
+
+## MASTER OUTLINE
+
+### Response 1 [50,000 chars]
+SECTION_1.1 | 0-20000 chars | [max 10 word topic description]
+SECTION_1.2 | 20000-35000 chars | [max 10 word topic description]
+SECTION_1.3 | 35000-50000 chars | [max 10 word topic description]
+
+### Response 2 [50,000 chars]
+SECTION_2.1 | 50000-75000 chars | [max 10 word topic description]
+SECTION_2.2 | 75000-100000 chars | [max 10 word topic description]
+
+## SECTION DETAILS
+SECTION_1.1: [max 10 words describing core topic]
+SECTION_1.2: [max 10 words describing core topic]
+
+## TRANSITION NOTES
+R1→R2: [5 words max on connection point]
+
+END_OUTLINE
+
+# CRITICAL REQUIREMENTS:
+1. TOTAL outline must be UNDER 2,500 characters
+2. Each section description: MAXIMUM 10 words
+3. NO story content, ONLY structural planning
+4. Precise character boundaries for EVERY section
+5. Clear topic keywords, not full sentences
 ```
 
-### 2. Response Generation Prompt
+**Key Improvements:**
+- **80% more concise** than old system
+- **Enforced structure** with parsing validation
+- **Character limits** on descriptions (max 10 words)
+- **Time-to-character conversion** built-in
+- **Model-aware response planning**
 
-This prompt is used in `_build_response_prompt()` (lines 669-776 in simple_processor.py):
+### 2. Section-Aware Response Generation Prompt
+
+**COMPLETELY NEW** - Now includes full section context via `_build_response_prompt_with_sections()`:
 
 ```python
 # RESPONSE {response_num} OF {response_plan['responses_needed']} GENERATION
@@ -320,7 +390,57 @@ Sentence Structure:
 - Action or emotional descriptions
 ```
 
-## Length Handling Examples
+## Time-Based Instructions
+
+**NEW FEATURE**: The system now automatically converts time-based user instructions to character allocations.
+
+### Supported Time Formats
+
+```python
+# Time range patterns
+"0-10 minutes about introduction and background"
+"10 to 25 minutes covering main analysis"
+"25-30 minutes on conclusion and wrap-up"
+
+# Duration patterns  
+"first 10 minutes about opening"
+"next 15 minutes discussing examples"
+"last 5 minutes for summary"
+```
+
+### Conversion Process
+
+1. **Parse Time Instructions** - Extract time ranges and topics
+2. **Convert to Characters** - Using reading speed formula
+3. **Map to Sections** - Create SectionBoundary objects
+4. **Assign to Responses** - Determine which LLM call handles each section
+
+### Example Conversion
+
+```
+User Input:
+"0-10 minutes: introduction to the topic
+10-25 minutes: detailed analysis with examples  
+25-30 minutes: conclusion and next steps"
+
+System Output:
+SECTION_1.1 | 0-50000 chars | introduction to topic
+SECTION_1.2 | 50000-125000 chars | detailed analysis with examples
+SECTION_2.1 | 125000-150000 chars | conclusion and next steps
+
+Response Planning:
+Response 1: Sections 1.1-1.2 (0-125,000 chars)
+Response 2: Section 2.1 (125,000-150,000 chars)
+```
+
+### Benefits
+
+- **User-Friendly**: Natural time-based instructions
+- **Precise Conversion**: Accounts for reading speed and playback speed
+- **Automatic Mapping**: No manual character calculations needed
+- **Section Awareness**: Each section knows its time context
+
+## Section Tracking Examples
 
 ### Example 1: 1 Hour Story (~10,000 characters)
 

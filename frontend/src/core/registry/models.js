@@ -65,6 +65,26 @@ export const models = [
     label: "OpenAI GPT-4o",
     provider: "openai",
   },
+  {
+    value: "gpt-5",
+    label: "OpenAI GPT-5",
+    provider: "openai",
+  },
+  {
+    value: "gpt-5-mini",
+    label: "OpenAI GPT-5 Mini",
+    provider: "openai",
+  },
+  {
+    value: "gpt-5-nano",
+    label: "OpenAI GPT-5 Nano",
+    provider: "openai",
+  },
+  {
+    value: "gpt-5-chat",
+    label: "OpenAI GPT-5 Chat",
+    provider: "openai",
+  },
 
   // Gemini Models
   {

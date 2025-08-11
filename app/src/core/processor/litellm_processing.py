@@ -115,10 +115,17 @@ def process_llm(
     params = additional_params or {}
     
     # Add standard parameters if not explicitly set
-    if "max_tokens" not in params:
-        params["max_tokens"] = max_tokens
-    if "temperature" not in params:
-        params["temperature"] = temperature
+    # GPT-5 models have special requirements: no max_completion_tokens, no temperature
+    if formatted_model.startswith("gpt-5"):
+        # GPT-5 doesn't accept max_completion_tokens parameter - let it use default
+        # GPT-5 only supports temperature=1.0 (default), so don't set it
+        # This allows GPT-5 to generate naturally without token limit constraints
+        pass
+    else:
+        if "max_tokens" not in params:
+            params["max_tokens"] = max_tokens
+        if "temperature" not in params:
+            params["temperature"] = temperature
     
     # Initialize retry counter and last error storage
     retry_count = 0
@@ -144,8 +151,12 @@ def process_llm(
                 # Log the actual parameters being sent
                 logger.info(f"🔧 API Call Parameters:")
                 logger.info(f"   Model: {formatted_model}")
-                logger.info(f"   Max tokens: {params.get('max_tokens', 'not set')}")
-                logger.info(f"   Temperature: {params.get('temperature', 'not set')}")
+                if formatted_model.startswith("gpt-5"):
+                    logger.info(f"   Max completion tokens: auto (GPT-5 manages token limits)")
+                    logger.info(f"   Temperature: default (1.0) - GPT-5 uses default only")
+                else:
+                    logger.info(f"   Max tokens: {params.get('max_tokens', 'not set')}")
+                    logger.info(f"   Temperature: {params.get('temperature', 'not set')}")
                 logger.info(f"   System prompt length: {len(system_prompt or ''):,} chars")
                 logger.info(f"   User message length: {len(context):,} chars")
 
