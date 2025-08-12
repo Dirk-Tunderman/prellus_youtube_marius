@@ -16,8 +16,8 @@ import re
 import logging
 from dataclasses import dataclass, field
 from typing import Dict, Any, Optional, List, Tuple
-from .processor_base import TranscriptProcessorInterface
 from .litellm_processing import process_llm
+from ..conversion import get_conversion_config
 
 logger = logging.getLogger(__name__)
 
@@ -161,7 +161,8 @@ class CharacterBoundaryManager:
         }
 
 # Constants for character/time conversion  
-CHARS_PER_MINUTE_BASE = 1000  # 1000 characters per minute (200 words * 5 chars/word)
+# Character conversion constants are now centralized in config.yaml
+# Access via conversion module for easy modification
 
 # Model-specific limits (characters AND tokens)
 # IMPORTANT: We track both characters and actual API token limits
@@ -303,8 +304,8 @@ class SimpleTranscriptProcessor:
                 duration_chars = self._convert_time_to_characters(f"{duration_min} minutes", speed)
                 
                 segments.append({
-                    "start_min": current_position / (CHARS_PER_MINUTE_BASE / speed) if current_position else 0,
-                    "end_min": (current_position + duration_chars) / (CHARS_PER_MINUTE_BASE / speed),
+                    "start_min": get_conversion_config().chars_to_minutes(current_position, 1.0 / speed) if current_position else 0,
+                    "end_min": get_conversion_config().chars_to_minutes(current_position + duration_chars, 1.0 / speed),
                     "start_char": current_position,
                     "end_char": current_position + duration_chars,
                     "duration_chars": duration_chars,
@@ -585,11 +586,9 @@ class SimpleTranscriptProcessor:
         # Check if user specified duration (minutes)
         duration_minutes = self.ai_config.get("length")
         if duration_minutes:
-            # Convert minutes to characters (using reading speed calculation)
-            effective_reading_speed = 200  # words per minute (updated to match base)
-            avg_chars_per_word = 5  # 5 chars per word including space
-            target_length = int(duration_minutes * effective_reading_speed * avg_chars_per_word)
-            logger.info(f"📊 Target from duration: {duration_minutes} min → {target_length:,} chars")
+            # Convert minutes to characters using centralized conversion config
+            target_length = get_conversion_config().minutes_to_chars(duration_minutes, 1.0)
+            logger.info(f"📊 Target from duration: {duration_minutes} min → {target_length:,} chars (using {get_conversion_config().chars_per_minute} chars/min)")
             return target_length
         
         # Check if user specified character count directly
@@ -760,7 +759,7 @@ class SimpleTranscriptProcessor:
         # Create the structure
         structure = MasterDocumentStructure(
             total_target_chars=target_length,
-            total_duration_minutes=target_length / CHARS_PER_MINUTE_BASE,
+            total_duration_minutes=get_conversion_config().chars_to_minutes(target_length),
             total_responses_needed=response_plan['responses_needed'],
             response_sections=response_sections,
             user_structure_mapping={},
@@ -870,10 +869,13 @@ class SimpleTranscriptProcessor:
     def _create_response_plan(self, target_length: int) -> dict:
         """Calculate how many responses needed based on model capacity."""
 
-        # Special handling for GPT-5 models based on observed real-world limits
+        # Special handling for models with observed real-world limits
         if self.model.startswith("gpt-5"):
-            chars_per_response = 60000  # Fixed 60K chars per response for GPT-5
-            logger.info(f"🤖 GPT-5 detected: Using fixed 60,000 chars per response limit")
+            chars_per_response = get_conversion_config().gpt5_chars_per_response
+            logger.info(f"🤖 GPT-5 detected: Using fixed {chars_per_response:,} chars per response limit")
+        elif self.model.startswith("claude"):
+            chars_per_response = get_conversion_config().claude_chars_per_response
+            logger.info(f"🧠 Claude detected: Using fixed {chars_per_response:,} chars per response limit (safety measure)")
         else:
             # Standard calculation for all other models (75% safety margin)
             max_tokens = self.model_limits.get("max_output_tokens", 16384)
@@ -973,10 +975,10 @@ class SimpleTranscriptProcessor:
 # PROJECT SPECIFICATIONS (Secondary to user instructions above)
 
 🎯 **PRIMARY TARGET - DURATION:**
-The final transcript should be approximately **{target_length // CHARS_PER_MINUTE_BASE:.0f} minutes** long when read aloud at normal speaking pace.
+The final transcript should be approximately **{get_conversion_config().chars_to_minutes(target_length):.0f} minutes** long when read aloud at normal speaking pace.
 
 📊 **LENGTH SPECIFICATIONS:**
-- Target Duration: more or less {target_length // CHARS_PER_MINUTE_BASE:.0f} minutes of speech
+- Target Duration: more or less {get_conversion_config().chars_to_minutes(target_length):.0f} minutes of speech
 - Target Length: approximately {target_length:,} characters
 - Word Count: around {target_length // 5:,} words
 - Model: {self.model} (can output roughly {model_char_limit:,} chars per response)
@@ -1008,7 +1010,7 @@ The final transcript should be approximately **{target_length // CHARS_PER_MINUT
             end_char = start_char + plan['target_chars']
             
             # Calculate duration for this response
-            response_minutes = plan['target_chars'] / CHARS_PER_MINUTE_BASE
+            response_minutes = get_conversion_config().chars_to_minutes(plan['target_chars'])
             response_words = plan['target_chars'] // 5
             
             prompt += f"""### Response {plan['response_num']}: [Response Title] 
@@ -1026,7 +1028,7 @@ The final transcript should be approximately **{target_length // CHARS_PER_MINUT
                     # Last section gets any remainder
                     section_chars = plan['target_chars'] - (chars_per_section * (sections_count - 1))
                 
-                section_minutes = section_chars / CHARS_PER_MINUTE_BASE
+                section_minutes = get_conversion_config().chars_to_minutes(section_chars)
                 section_words = section_chars // 5
                 
                 prompt += f"SECTION_{plan['response_num']}.{section_idx + 1} | Duration: roughly {section_minutes:.0f} minutes | Length: around {section_chars:,} chars (approximately {section_words:,} words) | [Brief topic description]\n"
@@ -1345,11 +1347,11 @@ Let's work together to create a more concise version of the following content. T
 
 📊 **CURRENT STATUS:**
 - Current length: approximately {actual_chars:,} characters
-- Current duration: more or less {actual_chars / CHARS_PER_MINUTE_BASE:.0f} minutes when read aloud
+- Current duration: more or less {get_conversion_config().chars_to_minutes(actual_chars):.0f} minutes when read aloud
 - Current word count: around {actual_chars // 5:,} words
 
 🎯 **DESIRED OUTPUT:**
-- Target duration: approximately {target_chars / CHARS_PER_MINUTE_BASE:.0f} minutes of speech
+- Target duration: approximately {get_conversion_config().chars_to_minutes(target_chars):.0f} minutes of speech
 - Target length: more or less {target_chars:,} characters
 - Target word count: around {target_chars // 5:,} words
 - Reduction needed: roughly {reduction_percentage}% shorter
@@ -1509,11 +1511,11 @@ Let's collaborate to develop this content into a fuller, more comprehensive vers
 
 📊 **CURRENT STATUS:**
 - Current length: approximately {actual_chars:,} characters
-- Current duration: more or less {actual_chars / CHARS_PER_MINUTE_BASE:.0f} minutes when read aloud
+- Current duration: more or less {get_conversion_config().chars_to_minutes(actual_chars):.0f} minutes when read aloud
 - Current word count: around {actual_chars // 5:,} words
 
 🎯 **DESIRED OUTPUT:**
-- Target duration: approximately {target_chars / CHARS_PER_MINUTE_BASE:.0f} minutes of speech
+- Target duration: approximately {get_conversion_config().chars_to_minutes(target_chars):.0f} minutes of speech
 - Target length: more or less {target_chars:,} characters  
 - Target word count: around {target_chars // 5:,} words
 - Expansion needed: roughly {expansion_percentage}% increase in content

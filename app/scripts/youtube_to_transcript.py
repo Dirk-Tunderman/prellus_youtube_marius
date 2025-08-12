@@ -47,6 +47,7 @@ if not os.environ.get("GOOGLE_API_KEY") and os.environ.get("GEMINI_API_KEY"):
 from src.core.fetcher.fetch_and_store import fetch_transcript
 from src.core.processor.simple_processor import process_simple_transcript
 from src.core.storage.transcript_storage import TranscriptStorage
+from src.core.conversion import get_conversion_config
 
 # Configure logging
 logging.basicConfig(
@@ -226,22 +227,16 @@ def youtube_to_transcript(
             logger.info(f"   ⏱️ Requested duration: {duration_minutes} minutes")
             logger.info(f"   🏃 Speed factor: {speed_factor}x")
             
-            # TTS reading speed (slower than human reading)
-            base_tts_reading_speed = 200  # words per minute (updated to match processor)
+            # Use centralized conversion configuration
+            conversion_config = get_conversion_config()
             
-            # Adjust for speed factor: slower speed = fewer characters needed for same time
-            # At 0.8x speed, content plays 25% slower, so we need 25% fewer characters
-            effective_reading_speed = base_tts_reading_speed / speed_factor
+            # Calculate target length using centralized conversion
+            target_length = conversion_config.minutes_to_chars(duration_minutes, speed_factor)
             
-            # More accurate character count for TTS content
-            avg_chars_per_word = 5  # 5 chars per word including space (updated to match processor)
-            
-            target_length = int(duration_minutes * effective_reading_speed * avg_chars_per_word)
-            
-            logger.info(f"   📚 Base TTS reading speed: {base_tts_reading_speed} WPM")
-            logger.info(f"   ⚡ Effective reading speed: {effective_reading_speed:.1f} WPM")
-            logger.info(f"   🔤 Average chars per word: {avg_chars_per_word}")
-            logger.info(f"   🎯 Target length: {target_length} characters")
+            logger.info(f"   📚 Base TTS reading speed: {conversion_config.words_per_minute} WPM")
+            logger.info(f"   ⚡ Effective reading speed: {conversion_config.words_per_minute / speed_factor:.1f} WPM")
+            logger.info(f"   🔤 Average chars per word: {conversion_config.chars_per_word}")
+            logger.info(f"   🎯 Target length: {target_length:,} characters")
         else:
             # Fallback for when no duration is specified
             target_length = original_length
