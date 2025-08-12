@@ -167,6 +167,23 @@ def process_llm(
                     **params
                 )
                 
+                # Enhanced GPT-5 debug logging
+                if formatted_model.startswith("gpt-5"):
+                    logger.info(f"🔍 GPT-5 Debug Info:")
+                    if hasattr(response, 'usage'):
+                        logger.info(f"   Input tokens used: {response.usage.prompt_tokens:,}")
+                        logger.info(f"   Output tokens generated: {response.usage.completion_tokens:,}")
+                        logger.info(f"   Total tokens: {response.usage.total_tokens:,}")
+                        logger.info(f"   Characters per output token: {len(response.choices[0].message.content) / response.usage.completion_tokens:.2f}")
+                    else:
+                        logger.warning(f"   No usage data available in response")
+                    
+                    logger.info(f"   Response object type: {type(response)}")
+                    logger.info(f"   Response has choices: {len(response.choices) if hasattr(response, 'choices') else 'No'}")
+                    if hasattr(response, 'choices') and response.choices:
+                        logger.info(f"   First choice message length: {len(response.choices[0].message.content):,} chars")
+                        logger.info(f"   First choice finish reason: {response.choices[0].finish_reason}")
+                
                 # Extract the response text
                 response = response.choices[0].message.content
                 

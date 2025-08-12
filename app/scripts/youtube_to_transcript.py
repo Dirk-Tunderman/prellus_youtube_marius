@@ -227,14 +227,14 @@ def youtube_to_transcript(
             logger.info(f"   🏃 Speed factor: {speed_factor}x")
             
             # TTS reading speed (slower than human reading)
-            base_tts_reading_speed = 180  # words per minute for TTS
+            base_tts_reading_speed = 200  # words per minute (updated to match processor)
             
             # Adjust for speed factor: slower speed = fewer characters needed for same time
             # At 0.8x speed, content plays 25% slower, so we need 25% fewer characters
             effective_reading_speed = base_tts_reading_speed / speed_factor
             
             # More accurate character count for TTS content
-            avg_chars_per_word = 4.7  # Based on English language averages
+            avg_chars_per_word = 5  # 5 chars per word including space (updated to match processor)
             
             target_length = int(duration_minutes * effective_reading_speed * avg_chars_per_word)
             

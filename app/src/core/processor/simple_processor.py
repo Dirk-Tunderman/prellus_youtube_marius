@@ -160,8 +160,8 @@ class CharacterBoundaryManager:
             "percentage_complete": (chars_in_section / section.target_chars * 100) if section.target_chars > 0 else 0
         }
 
-# Constants for character/time conversion
-CHARS_PER_MINUTE_BASE = 180 * 4.7  # 180 words per minute * 4.7 chars per word
+# Constants for character/time conversion  
+CHARS_PER_MINUTE_BASE = 1000  # 1000 characters per minute (200 words * 5 chars/word)
 
 # Model-specific limits (characters AND tokens)
 # IMPORTANT: We track both characters and actual API token limits
@@ -247,8 +247,8 @@ class SimpleTranscriptProcessor:
         
         # Calculate characters based on reading speed
         # Slower speed = more content needed for same duration
-        effective_reading_speed = (180 / speed)  # words per minute
-        chars_per_minute = effective_reading_speed * 4.7  # average chars per word
+        effective_reading_speed = (200 / speed)  # words per minute (base 200 WPM)
+        chars_per_minute = effective_reading_speed * 5  # 5 chars per word including space
         
         return int(minutes * chars_per_minute)
     
@@ -586,8 +586,8 @@ class SimpleTranscriptProcessor:
         duration_minutes = self.ai_config.get("length")
         if duration_minutes:
             # Convert minutes to characters (using reading speed calculation)
-            effective_reading_speed = 225  # words per minute
-            avg_chars_per_word = 4.7
+            effective_reading_speed = 200  # words per minute (updated to match base)
+            avg_chars_per_word = 5  # 5 chars per word including space
             target_length = int(duration_minutes * effective_reading_speed * avg_chars_per_word)
             logger.info(f"📊 Target from duration: {duration_minutes} min → {target_length:,} chars")
             return target_length
@@ -622,11 +622,13 @@ class SimpleTranscriptProcessor:
         max_retries = 3
         for attempt in range(max_retries):
             try:
-                # Calculate safe token count for master document (much smaller now for outline)
-                master_doc_tokens = 2000  # Concise outline should be small
+                # Dynamic token allocation based on response count - scale with complexity
+                base_tokens = 2000
+                tokens_per_response = 1500
+                master_doc_tokens = base_tokens + (response_plan['responses_needed'] * tokens_per_response)
                 
                 logger.info(f"📋 Master outline generation (attempt {attempt + 1}/{max_retries})")
-                logger.info(f"   Max tokens: {master_doc_tokens} (expecting concise outline)")
+                logger.info(f"   Max tokens: {master_doc_tokens} (scaled for {response_plan['responses_needed']} responses)")
 
                 master_document = process_llm(
                     context="Create the concise outline as specified.",
@@ -868,10 +870,16 @@ class SimpleTranscriptProcessor:
     def _create_response_plan(self, target_length: int) -> dict:
         """Calculate how many responses needed based on model capacity."""
 
-        # Get model's safe output capacity (75% of max tokens in chars)
-        max_tokens = self.model_limits.get("max_output_tokens", 16384)
-        safe_tokens = int(max_tokens * 0.75)
-        chars_per_response = safe_tokens * 4
+        # Special handling for GPT-5 models based on observed real-world limits
+        if self.model.startswith("gpt-5"):
+            chars_per_response = 60000  # Fixed 60K chars per response for GPT-5
+            logger.info(f"🤖 GPT-5 detected: Using fixed 60,000 chars per response limit")
+        else:
+            # Standard calculation for all other models (75% safety margin)
+            max_tokens = self.model_limits.get("max_output_tokens", 16384)
+            safe_tokens = int(max_tokens * 0.75)
+            chars_per_response = safe_tokens * 4
+            logger.info(f"📊 Standard model: {chars_per_response:,} chars per response (75% of {max_tokens:,} tokens)")
 
         # Calculate response breakdown
         needed_responses = math.ceil(target_length / chars_per_response)
@@ -963,10 +971,16 @@ class SimpleTranscriptProcessor:
 ═══════════════════════════════════════════════════════════════
 
 # PROJECT SPECIFICATIONS (Secondary to user instructions above)
-Total Target: {target_length:,} characters (~{target_length // 250:,} words)
-Duration: ~{target_length // CHARS_PER_MINUTE_BASE:.1f} minutes reading time
-Model: {self.model} (Response limit: ~{model_char_limit:,} chars)
-Responses Required: {response_plan['responses_needed']}
+
+🎯 **PRIMARY TARGET - DURATION:**
+The final transcript should be approximately **{target_length // CHARS_PER_MINUTE_BASE:.0f} minutes** long when read aloud at normal speaking pace.
+
+📊 **LENGTH SPECIFICATIONS:**
+- Target Duration: more or less {target_length // CHARS_PER_MINUTE_BASE:.0f} minutes of speech
+- Target Length: approximately {target_length:,} characters
+- Word Count: around {target_length // 5:,} words
+- Model: {self.model} (can output roughly {model_char_limit:,} chars per response)
+- Responses Planned: {response_plan['responses_needed']} response{"s" if response_plan['responses_needed'] > 1 else ""}
 
 **YOU ARE A CONTENT STRUCTURE PLANNER - CREATE DETAILED OUTLINE THAT FOLLOWS THE HOLY USER INSTRUCTIONS ABOVE**
 
@@ -988,34 +1002,34 @@ Responses Required: {response_plan['responses_needed']}
 
 """
         
-        # Add response-specific sections with rounded numbers
+        # Add response-specific sections with duration emphasis
         for i, plan in enumerate(response_plan["response_plan"]):
             start_char = sum(p['target_chars'] for p in response_plan["response_plan"][:i])
             end_char = start_char + plan['target_chars']
             
-            # Round to nearest 1000
-            start_char_rounded = round(start_char / 1000) * 1000
-            end_char_rounded = round(end_char / 1000) * 1000
-            total_chars_rounded = end_char_rounded - start_char_rounded
-            total_words_approx = total_chars_rounded // 4
+            # Calculate duration for this response
+            response_minutes = plan['target_chars'] / CHARS_PER_MINUTE_BASE
+            response_words = plan['target_chars'] // 5
             
-            prompt += f"""### Response {plan['response_num']}: [Response Title] [~{total_chars_rounded:,} chars, ~{total_words_approx:,} words]
+            prompt += f"""### Response {plan['response_num']}: [Response Title] 
+**Duration:** approximately {response_minutes:.0f} minutes when read aloud
+**Length:** more or less {plan['target_chars']:,} characters (around {response_words:,} words)
 """
             
             # Create 2-3 sections per response
             sections_count = 3 if plan['target_chars'] > 30000 else 2
-            chars_per_section = total_chars_rounded // sections_count
+            chars_per_section = plan['target_chars'] // sections_count
             
             for section_idx in range(sections_count):
-                section_start = start_char_rounded + (section_idx * chars_per_section)
-                section_end = section_start + chars_per_section
+                section_chars = chars_per_section
                 if section_idx == sections_count - 1:
-                    section_end = end_char_rounded
+                    # Last section gets any remainder
+                    section_chars = plan['target_chars'] - (chars_per_section * (sections_count - 1))
                 
-                section_chars = section_end - section_start
-                section_words = section_chars // 4
+                section_minutes = section_chars / CHARS_PER_MINUTE_BASE
+                section_words = section_chars // 5
                 
-                prompt += f"SECTION_{plan['response_num']}.{section_idx + 1} | ~{section_chars:,} chars (~{section_words:,} words) | [Brief topic description]\n"
+                prompt += f"SECTION_{plan['response_num']}.{section_idx + 1} | Duration: roughly {section_minutes:.0f} minutes | Length: around {section_chars:,} chars (approximately {section_words:,} words) | [Brief topic description]\n"
         
         prompt += """
 
@@ -1329,9 +1343,18 @@ You must generate text that will be read aloud by a Text-to-Speech (TTS) system.
 
 Let's work together to create a more concise version of the following content. The goal is to capture all the essential meaning while making it more streamlined for speech.
 
-**TARGET RANGE: {min_target:,} - {max_target:,} characters** (aim for around {target_chars:,})
-**CURRENT LENGTH: {actual_chars:,} characters**
-**SUGGESTED REDUCTION: approximately {reduction_percentage}%**
+📊 **CURRENT STATUS:**
+- Current length: approximately {actual_chars:,} characters
+- Current duration: more or less {actual_chars / CHARS_PER_MINUTE_BASE:.0f} minutes when read aloud
+- Current word count: around {actual_chars // 5:,} words
+
+🎯 **DESIRED OUTPUT:**
+- Target duration: approximately {target_chars / CHARS_PER_MINUTE_BASE:.0f} minutes of speech
+- Target length: more or less {target_chars:,} characters
+- Target word count: around {target_chars // 5:,} words
+- Reduction needed: roughly {reduction_percentage}% shorter
+
+**ACCEPTABLE RANGE:** Between {min_target:,} and {max_target:,} characters
 
 Your condensing approach should:
 - Preserve the exact same writing style and narrative voice
@@ -1356,6 +1379,7 @@ Please create your condensed version that falls within the target range while ma
                 # Retry mechanism for shortening with original content
                 original_content_to_shorten = new_content  # Store original for all retries
                 shortened_success = False
+                shortening_attempts = []  # Track all attempts for best selection
                 
                 for attempt in range(1, 4):  # Up to 3 attempts
                     try:
@@ -1373,6 +1397,14 @@ Please create your condensed version that falls within the target range while ma
                         )
                         
                         shortened_chars = len(shortened_content)
+                        
+                        # Store this attempt for potential best selection
+                        shortening_attempts.append({
+                            'attempt': attempt,
+                            'content': shortened_content,
+                            'chars': shortened_chars,
+                            'distance_from_target': abs(shortened_chars - target_chars)
+                        })
                         
                         # Check if result is within acceptable range
                         if min_target <= shortened_chars <= max_target:
@@ -1399,7 +1431,19 @@ Please create your condensed version that falls within the target range while ma
                         logger.warning(f"   ⚠️ Shortening attempt {attempt} failed: {e}")
                 
                 if not shortened_success:
-                    logger.warning(f"   ❌ All shortening attempts failed, keeping original: {len(new_content):,} chars")
+                    if shortening_attempts:
+                        # Select the attempt closest to target
+                        best_attempt = min(shortening_attempts, key=lambda x: x['distance_from_target'])
+                        logger.info(f"   🎯 All attempts outside range, selecting best attempt {best_attempt['attempt']}: {best_attempt['chars']:,} chars")
+                        logger.info(f"      Distance from target ({target_chars:,}): {best_attempt['distance_from_target']:,} chars")
+                        
+                        # Use the best attempt
+                        generated_content = generated_content[:-len(new_content)] + best_attempt['content']
+                        new_content = best_attempt['content']
+                        actual_chars = best_attempt['chars']
+                        precision = actual_chars / target_chars
+                    else:
+                        logger.warning(f"   ❌ All shortening attempts failed, keeping original: {len(new_content):,} chars")
             
             elif actual_chars < min_acceptable_chars:
                 # TOO SHORT: Whole-content rewriting approach (no concatenation)
@@ -1463,9 +1507,18 @@ You must generate text that will be read aloud by a Text-to-Speech (TTS) system.
 
 Let's collaborate to develop this content into a fuller, more comprehensive version. We want to add depth and detail while maintaining the authentic voice and natural flow.
 
-**TARGET RANGE: {min_target:,} - {max_target:,} characters** (aim for around {target_chars:,})
-**CURRENT LENGTH: {actual_chars:,} characters**
-**SUGGESTED EXPANSION: approximately {expansion_percentage}%**
+📊 **CURRENT STATUS:**
+- Current length: approximately {actual_chars:,} characters
+- Current duration: more or less {actual_chars / CHARS_PER_MINUTE_BASE:.0f} minutes when read aloud
+- Current word count: around {actual_chars // 5:,} words
+
+🎯 **DESIRED OUTPUT:**
+- Target duration: approximately {target_chars / CHARS_PER_MINUTE_BASE:.0f} minutes of speech
+- Target length: more or less {target_chars:,} characters  
+- Target word count: around {target_chars // 5:,} words
+- Expansion needed: roughly {expansion_percentage}% increase in content
+
+**ACCEPTABLE RANGE:** Between {min_target:,} and {max_target:,} characters
 
 Your enrichment approach should:
 - Maintain the exact same writing style and narrative voice
@@ -1490,6 +1543,7 @@ Please create your enriched version that falls within the target range while pre
                 # Retry mechanism for expansion with original content
                 original_content_to_expand = new_content  # Store original for all retries
                 expansion_success = False
+                expansion_attempts = []  # Track all attempts for best selection
                 
                 for attempt in range(1, 4):  # Up to 3 attempts
                     try:
@@ -1507,6 +1561,14 @@ Please create your enriched version that falls within the target range while pre
                         )
                         
                         expanded_chars = len(expanded_content)
+                        
+                        # Store this attempt for potential best selection
+                        expansion_attempts.append({
+                            'attempt': attempt,
+                            'content': expanded_content,
+                            'chars': expanded_chars,
+                            'distance_from_target': abs(expanded_chars - target_chars)
+                        })
                         
                         # Check if result is within acceptable range
                         if min_target <= expanded_chars <= max_target:
@@ -1533,7 +1595,19 @@ Please create your enriched version that falls within the target range while pre
                         logger.warning(f"   ⚠️ Expansion attempt {attempt} failed: {e}")
                 
                 if not expansion_success:
-                    logger.warning(f"   ❌ All expansion attempts failed, keeping original: {len(new_content):,} chars")
+                    if expansion_attempts:
+                        # Select the attempt closest to target
+                        best_attempt = min(expansion_attempts, key=lambda x: x['distance_from_target'])
+                        logger.info(f"   🎯 All attempts outside range, selecting best attempt {best_attempt['attempt']}: {best_attempt['chars']:,} chars")
+                        logger.info(f"      Distance from target ({target_chars:,}): {best_attempt['distance_from_target']:,} chars")
+                        
+                        # Use the best attempt
+                        generated_content = generated_content[:-len(new_content)] + best_attempt['content']
+                        new_content = best_attempt['content']
+                        actual_chars = best_attempt['chars']
+                        precision = actual_chars / target_chars
+                    else:
+                        logger.warning(f"   ❌ All expansion attempts failed, keeping original: {len(new_content):,} chars")
             
             else:
                 logger.info(f"   ✅ Length acceptable: {actual_chars:,} characters (within range)")
