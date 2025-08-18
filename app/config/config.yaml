@@ -11,7 +11,7 @@ ai:
 character_conversion:
   words_per_minute: 200        # Base TTS reading speed (WPM)
   chars_per_word: 5           # Characters per word (including space)
-  chars_per_minute: 830       # Updated from 1000 for more realistic reading pace
+  chars_per_minute: 1000       # Updated from 1000 for more realistic reading pace
   gpt5_chars_per_response: 60000   # GPT-5 observed output limit
   claude_chars_per_response: 60000 # Claude observed output limit (safety measure)
 chunked_processing:
