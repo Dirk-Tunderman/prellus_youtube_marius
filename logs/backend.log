@@ -1,74 +1,73 @@
-2025-08-18 19:53:16,431 - __main__ - INFO - 
+2025-08-18 20:54:40,094 - __main__ - INFO - 
 ========== YouTube Transcript Processor API ==========
-2025-08-18 19:53:16,431 - __main__ - INFO - STARTED AT: 2025-08-18 19:53:16
-2025-08-18 19:53:16,431 - __main__ - INFO - Server running at: http://localhost:5001
-2025-08-18 19:53:16,431 - __main__ - INFO - Test the API at: http://localhost:5001/api/test
-2025-08-18 19:53:16,431 - __main__ - INFO - ======================================================
+2025-08-18 20:54:40,095 - __main__ - INFO - STARTED AT: 2025-08-18 20:54:40
+2025-08-18 20:54:40,095 - __main__ - INFO - Server running at: http://localhost:5001
+2025-08-18 20:54:40,095 - __main__ - INFO - Test the API at: http://localhost:5001/api/test
+2025-08-18 20:54:40,095 - __main__ - INFO - ======================================================
 
  * Serving Flask app 'main'
  * Debug mode: on
-2025-08-18 19:53:16,464 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+2025-08-18 20:54:40,149 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
  * Running on all addresses (0.0.0.0)
  * Running on http://127.0.0.1:5001
  * Running on http://192.168.178.133:5001
-2025-08-18 19:53:16,465 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
-2025-08-18 19:53:16,465 - werkzeug - INFO -  * Restarting with stat
-2025-08-18 19:53:17,781 - __main__ - INFO - 
+2025-08-18 20:54:40,149 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-08-18 20:54:40,152 - werkzeug - INFO -  * Restarting with stat
+2025-08-18 20:54:41,365 - __main__ - INFO - 
 ========== YouTube Transcript Processor API ==========
-2025-08-18 19:53:17,781 - __main__ - INFO - STARTED AT: 2025-08-18 19:53:17
-2025-08-18 19:53:17,781 - __main__ - INFO - Server running at: http://localhost:5001
-2025-08-18 19:53:17,781 - __main__ - INFO - Test the API at: http://localhost:5001/api/test
-2025-08-18 19:53:17,781 - __main__ - INFO - ======================================================
+2025-08-18 20:54:41,365 - __main__ - INFO - STARTED AT: 2025-08-18 20:54:41
+2025-08-18 20:54:41,365 - __main__ - INFO - Server running at: http://localhost:5001
+2025-08-18 20:54:41,365 - __main__ - INFO - Test the API at: http://localhost:5001/api/test
+2025-08-18 20:54:41,365 - __main__ - INFO - ======================================================
 
-2025-08-18 19:53:17,798 - werkzeug - WARNING -  * Debugger is active!
-2025-08-18 19:53:17,805 - werkzeug - INFO -  * Debugger PIN: 342-089-257
-2025-08-18 19:53:17,821 - __main__ - INFO - API test endpoint accessed
-2025-08-18 19:53:17,822 - werkzeug - INFO - 127.0.0.1 - - [18/Aug/2025 19:53:17] "GET /api/test HTTP/1.1" 200 -
-2025-08-18 19:53:22,280 - __main__ - INFO - Getting transcript list
-2025-08-18 19:53:22,287 - werkzeug - INFO - 127.0.0.1 - - [18/Aug/2025 19:53:22] "GET /api/transcripts HTTP/1.1" 200 -
-2025-08-18 19:53:22,288 - werkzeug - INFO - 127.0.0.1 - - [18/Aug/2025 19:53:22] "GET /api/projects/X0tAVPDIR9I_20250818_193512/transcript HTTP/1.1" 200 -
-2025-08-18 19:53:22,298 - werkzeug - INFO - 127.0.0.1 - - [18/Aug/2025 19:53:22] "GET /api/prompts HTTP/1.1" 200 -
-2025-08-18 19:53:22,327 - werkzeug - INFO - 127.0.0.1 - - [18/Aug/2025 19:53:22] "GET /api/projects HTTP/1.1" 200 -
-2025-08-18 19:53:25,220 - __main__ - INFO - Getting transcript list
-2025-08-18 19:53:25,221 - werkzeug - INFO - 127.0.0.1 - - [18/Aug/2025 19:53:25] "GET /api/transcripts HTTP/1.1" 200 -
-2025-08-18 19:53:25,224 - werkzeug - INFO - 127.0.0.1 - - [18/Aug/2025 19:53:25] "GET /api/prompts HTTP/1.1" 200 -
-2025-08-18 19:53:25,226 - werkzeug - INFO - 127.0.0.1 - - [18/Aug/2025 19:53:25] "GET /api/projects HTTP/1.1" 200 -
-2025-08-18 19:53:43,632 - werkzeug - INFO - 127.0.0.1 - - [18/Aug/2025 19:53:43] "GET /api/prompts/e60747a8-952c-415c-b79d-40f27b7c5f75 HTTP/1.1" 200 -
-2025-08-18 19:53:48,037 - werkzeug - INFO - 127.0.0.1 - - [18/Aug/2025 19:53:48] "OPTIONS /api/transcripts/process HTTP/1.1" 200 -
-2025-08-18 19:53:48,038 - __main__ - INFO - ===== RECEIVED TRANSCRIPT PROCESSING REQUEST =====
-2025-08-18 19:53:48,038 - __main__ - INFO - TIMESTAMP: 2025-08-18 19:53:48
-2025-08-18 19:53:48,038 - __main__ - INFO - URL: https://www.youtube.com/watch?v=X0tAVPDIR9I
-2025-08-18 19:53:48,038 - __main__ - INFO - TITLE: bbbb
-2025-08-18 19:53:48,039 - __main__ - INFO - Duration: 28 minutes
-2025-08-18 19:53:48,039 - __main__ - INFO - === STRUCTURED PROMPT FIELDS ===
-2025-08-18 19:53:48,039 - __main__ - INFO - additionalInstructions: Optimized for average watch time and shareability....
-2025-08-18 19:53:48,039 - __main__ - INFO - retentionAndFlow: 
-2025-08-18 19:53:48,039 - __main__ - INFO - scriptStructure: A. Cinematic Intro: Cold Open 
+2025-08-18 20:54:41,387 - werkzeug - WARNING -  * Debugger is active!
+2025-08-18 20:54:41,396 - werkzeug - INFO -  * Debugger PIN: 342-089-257
+2025-08-18 20:54:41,412 - __main__ - INFO - API test endpoint accessed
+2025-08-18 20:54:41,416 - werkzeug - INFO - 127.0.0.1 - - [18/Aug/2025 20:54:41] "GET /api/test HTTP/1.1" 200 -
+2025-08-18 20:54:48,333 - __main__ - INFO - Getting transcript list
+2025-08-18 20:54:48,334 - werkzeug - INFO - 127.0.0.1 - - [18/Aug/2025 20:54:48] "GET /api/transcripts HTTP/1.1" 200 -
+2025-08-18 20:54:48,340 - werkzeug - INFO - 127.0.0.1 - - [18/Aug/2025 20:54:48] "GET /api/prompts HTTP/1.1" 200 -
+2025-08-18 20:54:48,348 - werkzeug - INFO - 127.0.0.1 - - [18/Aug/2025 20:54:48] "GET /api/projects HTTP/1.1" 200 -
+2025-08-18 20:55:01,451 - __main__ - INFO - Getting transcript list
+2025-08-18 20:55:01,452 - werkzeug - INFO - 127.0.0.1 - - [18/Aug/2025 20:55:01] "GET /api/transcripts HTTP/1.1" 200 -
+2025-08-18 20:55:01,457 - werkzeug - INFO - 127.0.0.1 - - [18/Aug/2025 20:55:01] "GET /api/prompts HTTP/1.1" 200 -
+2025-08-18 20:55:01,462 - werkzeug - INFO - 127.0.0.1 - - [18/Aug/2025 20:55:01] "GET /api/projects HTTP/1.1" 200 -
+2025-08-18 20:55:22,095 - werkzeug - INFO - 127.0.0.1 - - [18/Aug/2025 20:55:22] "GET /api/prompts/acdbc7d9-2fcb-4584-aa22-c8c6d65d1465 HTTP/1.1" 200 -
+2025-08-18 20:55:25,756 - werkzeug - INFO - 127.0.0.1 - - [18/Aug/2025 20:55:25] "OPTIONS /api/transcripts/process HTTP/1.1" 200 -
+2025-08-18 20:55:25,757 - __main__ - INFO - ===== RECEIVED TRANSCRIPT PROCESSING REQUEST =====
+2025-08-18 20:55:25,757 - __main__ - INFO - TIMESTAMP: 2025-08-18 20:55:25
+2025-08-18 20:55:25,757 - __main__ - INFO - URL: https://www.youtube.com/watch?v=X0tAVPDIR9I
+2025-08-18 20:55:25,757 - __main__ - INFO - TITLE: final longg
+2025-08-18 20:55:25,757 - __main__ - INFO - Duration: 140 minutes
+2025-08-18 20:55:25,757 - __main__ - INFO - === STRUCTURED PROMPT FIELDS ===
+2025-08-18 20:55:25,757 - __main__ - INFO - additionalInstructions: Optimized for average watch time and shareability....
+2025-08-18 20:55:25,757 - __main__ - INFO - retentionAndFlow: 
+2025-08-18 20:55:25,757 - __main__ - INFO - scriptStructure: A. Cinematic Intro: Cold Open 
 
 Drops the viewer i...
-2025-08-18 19:53:48,039 - __main__ - INFO - toneAndStyle: Tone: Authoritative, empathetic, grounded.
+2025-08-18 20:55:25,757 - __main__ - INFO - toneAndStyle: Tone: Authoritative, empathetic, grounded.
 
 Style:...
-2025-08-18 19:53:48,039 - __main__ - INFO - yourRole: You are the calm, informed narrator transporting t...
-2025-08-18 19:53:48,039 - __main__ - INFO - =================================================
+2025-08-18 20:55:25,757 - __main__ - INFO - yourRole: You are the calm, informed narrator transporting t...
+2025-08-18 20:55:25,757 - __main__ - INFO - =================================================
 
-2025-08-18 19:53:48,039 - __main__ - INFO - Loading config from: /Users/dirktunderman/Desktop/prellus/app/config/config.yaml
-2025-08-18 19:53:48,045 - __main__ - INFO - Config loaded successfully
-2025-08-18 19:53:48,045 - __main__ - INFO - Injected structured prompt data into config
-2025-08-18 19:53:48,045 - __main__ - INFO - Starting youtube_to_audio for URL: https://www.youtube.com/watch?v=X0tAVPDIR9I
-2025-08-18 19:53:48,045 - scripts.youtube_to_transcript - INFO - ================================================================================
-2025-08-18 19:53:48,045 - scripts.youtube_to_transcript - INFO - 📋 COMPLETE INPUT DATA FOR PROCESSING
-2025-08-18 19:53:48,045 - scripts.youtube_to_transcript - INFO - ================================================================================
-2025-08-18 19:53:48,045 - scripts.youtube_to_transcript - INFO - 🔗 YouTube URL: https://www.youtube.com/watch?v=X0tAVPDIR9I
-2025-08-18 19:53:48,045 - scripts.youtube_to_transcript - INFO - 📊 JSON Data Received:
-2025-08-18 19:53:48,045 - scripts.youtube_to_transcript - INFO -    ⏱️ Duration: 28 minutes
-2025-08-18 19:53:48,045 - scripts.youtube_to_transcript - INFO -    🗣️ Voice: not specified
-2025-08-18 19:53:48,046 - scripts.youtube_to_transcript - INFO -    🏃 Speed: not specifiedx
-2025-08-18 19:53:48,046 - scripts.youtube_to_transcript - INFO -    📝 Title: bbbb
-2025-08-18 19:53:48,046 - scripts.youtube_to_transcript - INFO -    📋 Other fields:
-2025-08-18 19:53:48,046 - scripts.youtube_to_transcript - INFO -       - timestamp: 2025-08-18 19:53:48
-2025-08-18 19:53:48,046 - scripts.youtube_to_transcript - INFO -       - url: https://www.youtube.com/watch?v=X0tAVPDIR9I
-2025-08-18 19:53:48,046 - scripts.youtube_to_transcript - INFO -       - prompt: YOUR ROLE:
+2025-08-18 20:55:25,757 - __main__ - INFO - Loading config from: /Users/dirktunderman/Desktop/prellus/app/config/config.yaml
+2025-08-18 20:55:25,760 - __main__ - INFO - Config loaded successfully
+2025-08-18 20:55:25,760 - __main__ - INFO - Injected structured prompt data into config
+2025-08-18 20:55:25,760 - __main__ - INFO - Starting youtube_to_audio for URL: https://www.youtube.com/watch?v=X0tAVPDIR9I
+2025-08-18 20:55:25,760 - scripts.youtube_to_transcript - INFO - ================================================================================
+2025-08-18 20:55:25,760 - scripts.youtube_to_transcript - INFO - 📋 COMPLETE INPUT DATA FOR PROCESSING
+2025-08-18 20:55:25,760 - scripts.youtube_to_transcript - INFO - ================================================================================
+2025-08-18 20:55:25,760 - scripts.youtube_to_transcript - INFO - 🔗 YouTube URL: https://www.youtube.com/watch?v=X0tAVPDIR9I
+2025-08-18 20:55:25,760 - scripts.youtube_to_transcript - INFO - 📊 JSON Data Received:
+2025-08-18 20:55:25,760 - scripts.youtube_to_transcript - INFO -    ⏱️ Duration: 140 minutes
+2025-08-18 20:55:25,760 - scripts.youtube_to_transcript - INFO -    🗣️ Voice: not specified
+2025-08-18 20:55:25,760 - scripts.youtube_to_transcript - INFO -    🏃 Speed: not specifiedx
+2025-08-18 20:55:25,760 - scripts.youtube_to_transcript - INFO -    📝 Title: final longg
+2025-08-18 20:55:25,760 - scripts.youtube_to_transcript - INFO -    📋 Other fields:
+2025-08-18 20:55:25,760 - scripts.youtube_to_transcript - INFO -       - timestamp: 2025-08-18 20:55:25
+2025-08-18 20:55:25,760 - scripts.youtube_to_transcript - INFO -       - url: https://www.youtube.com/watch?v=X0tAVPDIR9I
+2025-08-18 20:55:25,760 - scripts.youtube_to_transcript - INFO -       - prompt: YOUR ROLE:
 You are the calm, informed narrator transporting the viewer into a realistic crisis scenario. You shift between immersive storytelling and actionable guidance, acting as both storyteller and strategist. The role carries emotional authority — not just telling viewers what to do, but why it matters.
 
 SCRIPT STRUCTURE:
@@ -112,7 +111,7 @@ Silent chaos (dead phones, empty stores)
 
 Invites a mindset shift: war is no longer “over there” — it's in systems we rely on daily.
 
-E. The Mindset Weapon (9:30–11:00)
+E. The Mindset Weapon
 
 Highlights how calm thinking outperforms physical strength.
 
@@ -120,7 +119,7 @@ Psychological preparation emphasized: don’t freeze, don’t panic.
 
 Preparation is internal first, external second.
 
-F. Action Plan: First 24 Hours (11:00–16:00)
+F. Action Plan: First 24 Hours
 
 Step-by-step list begins:
 
@@ -136,7 +135,7 @@ Step 5: Communication plan
 
 Every item reinforced with why it matters and how to do it fast.
 
-G. Mistakes to Avoid (16:00–19:00)
+G. Mistakes to Avoid 
 
 Common errors:
 
@@ -150,7 +149,7 @@ Waiting to be rescued
 
 This section adds realism and preemptive guidance, enhancing viewer trust.
 
-H. Long-Term Mindset & Daily Habits (19:00–22:30)
+H. Long-Term Mindset & Daily Habits 
 
 Encourages viewers to:
 
@@ -162,7 +161,7 @@ Have family conversations in advance.
 
 Emphasis on incremental progress over perfection.
 
-I. Final Motivation + CTA (22:30–end)
+I. Final Motivation + CTA
 
 Core belief restated: “Preparedness isn’t fear — it’s freedom.”
 
@@ -191,218 +190,423 @@ Works well with dark stock footage, military clips, red alert animations, and te
 Highly adaptable for narration-driven YouTube formats.
 
 
-2025-08-18 19:53:48,046 - scripts.youtube_to_transcript - INFO - ================================================================================
-2025-08-18 19:53:48,046 - scripts.youtube_to_transcript - INFO - 📝 Structured Prompt Data:
-2025-08-18 19:53:48,046 - scripts.youtube_to_transcript - INFO -    - additionalInstructions: Optimized for average watch time and shareability.
+2025-08-18 20:55:25,760 - scripts.youtube_to_transcript - INFO - ================================================================================
+2025-08-18 20:55:25,760 - scripts.youtube_to_transcript - INFO - 📝 Structured Prompt Data:
+2025-08-18 20:55:25,760 - scripts.youtube_to_transcript - INFO -    - additionalInstructions: Optimized for average watch time and shareability.
 
 Great for episodic content and prepper audiences...
-2025-08-18 19:53:48,046 - scripts.youtube_to_transcript - INFO -    - scriptStructure: A. Cinematic Intro: Cold Open 
+2025-08-18 20:55:25,760 - scripts.youtube_to_transcript - INFO -    - scriptStructure: A. Cinematic Intro: Cold Open 
 
 Drops the viewer into a vivid fictional emergency (siren, phone buzz...
-2025-08-18 19:53:48,046 - scripts.youtube_to_transcript - INFO -    - toneAndStyle: Tone: Authoritative, empathetic, grounded.
+2025-08-18 20:55:25,760 - scripts.youtube_to_transcript - INFO -    - toneAndStyle: Tone: Authoritative, empathetic, grounded.
 
 Style: Blends fiction with real-world urgency. Balances ...
-2025-08-18 19:53:48,046 - scripts.youtube_to_transcript - INFO -    - yourRole: You are the calm, informed narrator transporting the viewer into a realistic crisis scenario. You sh...
-2025-08-18 19:53:48,046 - scripts.youtube_to_transcript - INFO - Step 1: Fetching transcript for https://www.youtube.com/watch?v=X0tAVPDIR9I
-2025-08-18 19:53:48,047 - src.core.fetcher.youtube_transcript - INFO - Initialized YouTubeTranscriptFetcher
-2025-08-18 19:53:48,047 - src.core.fetcher.fetch_and_store - INFO - Initialized TranscriptManager
-2025-08-18 19:53:48,047 - src.core.fetcher.fetch_and_store - INFO - Fetching transcript for: https://www.youtube.com/watch?v=X0tAVPDIR9I
-2025-08-18 19:53:48,047 - src.core.fetcher.youtube_transcript - INFO - Fetching transcript for YouTube video: X0tAVPDIR9I
-2025-08-18 19:53:49,117 - src.core.fetcher.youtube_transcript - INFO - Found transcript in preferred language: en
-2025-08-18 19:53:49,126 - src.core.fetcher.fetch_and_store - INFO - Created directory structure for video: data/transcripts/X0tAVPDIR9I_20250818_195349
-2025-08-18 19:53:49,151 - src.core.fetcher.fetch_and_store - INFO - Added title to metadata: bbbb
-2025-08-18 19:53:49,151 - src.core.fetcher.fetch_and_store - INFO - Transcript successfully stored at: data/transcripts/X0tAVPDIR9I_20250818_195349/raw/transcript.json
-2025-08-18 19:53:49,151 - scripts.youtube_to_transcript - INFO - Transcript fetched and stored in data/transcripts/X0tAVPDIR9I_20250818_195349
-2025-08-18 19:53:49,151 - scripts.youtube_to_transcript - INFO - Step 2: Processing transcript with AI
-2025-08-18 19:53:49,151 - scripts.youtube_to_transcript - INFO - 🧮 LENGTH CALCULATION:
-2025-08-18 19:53:49,151 - scripts.youtube_to_transcript - INFO -    ⏱️ Requested duration: 28 minutes
-2025-08-18 19:53:49,151 - scripts.youtube_to_transcript - INFO -    🏃 Speed factor: 1.0x
-2025-08-18 19:53:49,153 - scripts.youtube_to_transcript - INFO -    📚 Base TTS reading speed: 200 WPM
-2025-08-18 19:53:49,153 - scripts.youtube_to_transcript - INFO -    ⚡ Effective reading speed: 200.0 WPM
-2025-08-18 19:53:49,153 - scripts.youtube_to_transcript - INFO -    🔤 Average chars per word: 5
-2025-08-18 19:53:49,153 - scripts.youtube_to_transcript - INFO -    🎯 Target length: 28,000 characters
-2025-08-18 19:53:49,153 - scripts.youtube_to_transcript - INFO - Saved structured prompt data to data/transcripts/X0tAVPDIR9I_20250818_195349/prompt_structure.json
-2025-08-18 19:53:49,153 - scripts.youtube_to_transcript - INFO - Using structured prompt with components:
-2025-08-18 19:53:49,153 - scripts.youtube_to_transcript - INFO -   - additionalInstructions: Optimized for average watch time and shareability....
-2025-08-18 19:53:49,153 - scripts.youtube_to_transcript - INFO -   - scriptStructure: A. Cinematic Intro: Cold Open 
+2025-08-18 20:55:25,761 - scripts.youtube_to_transcript - INFO -    - yourRole: You are the calm, informed narrator transporting the viewer into a realistic crisis scenario. You sh...
+2025-08-18 20:55:25,761 - scripts.youtube_to_transcript - INFO - Step 1: Fetching transcript for https://www.youtube.com/watch?v=X0tAVPDIR9I
+2025-08-18 20:55:25,761 - src.core.fetcher.youtube_transcript - INFO - Initialized YouTubeTranscriptFetcher
+2025-08-18 20:55:25,761 - src.core.fetcher.fetch_and_store - INFO - Initialized TranscriptManager
+2025-08-18 20:55:25,761 - src.core.fetcher.fetch_and_store - INFO - Fetching transcript for: https://www.youtube.com/watch?v=X0tAVPDIR9I
+2025-08-18 20:55:25,761 - src.core.fetcher.youtube_transcript - INFO - Fetching transcript for YouTube video: X0tAVPDIR9I
+2025-08-18 20:55:27,044 - src.core.fetcher.youtube_transcript - INFO - Found transcript in preferred language: en
+2025-08-18 20:55:27,057 - src.core.fetcher.fetch_and_store - INFO - Created directory structure for video: data/transcripts/X0tAVPDIR9I_20250818_205527
+2025-08-18 20:55:27,082 - src.core.fetcher.fetch_and_store - INFO - Added title to metadata: final longg
+2025-08-18 20:55:27,082 - src.core.fetcher.fetch_and_store - INFO - Transcript successfully stored at: data/transcripts/X0tAVPDIR9I_20250818_205527/raw/transcript.json
+2025-08-18 20:55:27,082 - scripts.youtube_to_transcript - INFO - Transcript fetched and stored in data/transcripts/X0tAVPDIR9I_20250818_205527
+2025-08-18 20:55:27,082 - scripts.youtube_to_transcript - INFO - Step 2: Processing transcript with AI
+2025-08-18 20:55:27,082 - scripts.youtube_to_transcript - INFO - 🧮 LENGTH CALCULATION:
+2025-08-18 20:55:27,082 - scripts.youtube_to_transcript - INFO -    ⏱️ Requested duration: 140 minutes
+2025-08-18 20:55:27,082 - scripts.youtube_to_transcript - INFO -    🏃 Speed factor: 1.0x
+2025-08-18 20:55:27,084 - scripts.youtube_to_transcript - INFO -    📚 Base TTS reading speed: 200 WPM
+2025-08-18 20:55:27,084 - scripts.youtube_to_transcript - INFO -    ⚡ Effective reading speed: 200.0 WPM
+2025-08-18 20:55:27,084 - scripts.youtube_to_transcript - INFO -    🔤 Average chars per word: 5
+2025-08-18 20:55:27,084 - scripts.youtube_to_transcript - INFO -    🎯 Target length: 140,000 characters
+2025-08-18 20:55:27,084 - scripts.youtube_to_transcript - INFO - Saved structured prompt data to data/transcripts/X0tAVPDIR9I_20250818_205527/prompt_structure.json
+2025-08-18 20:55:27,084 - scripts.youtube_to_transcript - INFO - Using structured prompt with components:
+2025-08-18 20:55:27,084 - scripts.youtube_to_transcript - INFO -   - additionalInstructions: Optimized for average watch time and shareability....
+2025-08-18 20:55:27,084 - scripts.youtube_to_transcript - INFO -   - scriptStructure: A. Cinematic Intro: Cold Open 
 
 Drops the viewer i...
-2025-08-18 19:53:49,153 - scripts.youtube_to_transcript - INFO -   - toneAndStyle: Tone: Authoritative, empathetic, grounded.
+2025-08-18 20:55:27,084 - scripts.youtube_to_transcript - INFO -   - toneAndStyle: Tone: Authoritative, empathetic, grounded.
 
 Style:...
-2025-08-18 19:53:49,153 - scripts.youtube_to_transcript - INFO -   - yourRole: You are the calm, informed narrator transporting t...
-2025-08-18 19:53:49,153 - scripts.youtube_to_transcript - INFO - Target duration: 28 minutes
-2025-08-18 19:53:49,153 - scripts.youtube_to_transcript - INFO - Target transcript length: 28000 characters
-2025-08-18 19:53:49,153 - scripts.youtube_to_transcript - INFO - ============================================================
-2025-08-18 19:53:49,153 - scripts.youtube_to_transcript - INFO - 🔍 PROCESSING PATH DECISION ANALYSIS
-2025-08-18 19:53:49,153 - scripts.youtube_to_transcript - INFO - ============================================================
-2025-08-18 19:53:49,154 - scripts.youtube_to_transcript - INFO - 📝 Custom instructions present: True
-2025-08-18 19:53:49,154 - scripts.youtube_to_transcript - INFO - 🎯 RECREATION MODE should be activated
-2025-08-18 19:53:49,154 - scripts.youtube_to_transcript - INFO -    Expected behavior: Create entirely new content, ignore original subject
-2025-08-18 19:53:49,154 - scripts.youtube_to_transcript - INFO -    Role: You are the calm, informed narrator transporting the viewer into a realistic crisis scenario. You sh...
-2025-08-18 19:53:49,154 - scripts.youtube_to_transcript - INFO -    Structure provided: 2250 chars
-2025-08-18 19:53:49,154 - scripts.youtube_to_transcript - INFO - 🚀 SIMPLIFIED PROCESSING APPROACH
-2025-08-18 19:53:49,154 - scripts.youtube_to_transcript - INFO -    Target output: 28,000 chars
-2025-08-18 19:53:49,154 - scripts.youtube_to_transcript - INFO -    Method: Response-aware processor with optimal chunking
-2025-08-18 19:53:49,154 - scripts.youtube_to_transcript - INFO -    Features: Master document + response planning
-2025-08-18 19:53:49,154 - scripts.youtube_to_transcript - INFO - ============================================================
-2025-08-18 19:53:49,156 - src.core.processor.simple_processor - INFO - Initialized SimpleTranscriptProcessor with model: gpt-5
-2025-08-18 19:53:49,156 - src.core.processor.simple_processor - INFO - Model limits - Input: 1,600,000 chars, Output: 512,000 chars
-2025-08-18 19:53:49,156 - src.core.processor.simple_processor - INFO - 🚀 Starting Simple Transcript Processing
-2025-08-18 19:53:49,156 - src.core.processor.simple_processor - INFO - 📊 Target from duration: 28 min → 28,000 chars (using 1000 chars/min)
-2025-08-18 19:53:49,156 - src.core.processor.simple_processor - INFO - 📏 Target length: 28,000 characters
-2025-08-18 19:53:49,156 - src.core.processor.simple_processor - INFO - 📋 Step 1: Creating master document with response planning...
-2025-08-18 19:53:49,156 - src.core.processor.simple_processor - INFO - 🎯 Creating master document with response planning...
-2025-08-18 19:53:49,156 - src.core.processor.simple_processor - INFO - 🤖 GPT-5 detected: Using fixed 60,000 chars per response limit
-2025-08-18 19:53:49,156 - src.core.processor.simple_processor - INFO - 📊 Response Plan: 1 responses needed
-2025-08-18 19:53:49,156 - src.core.processor.simple_processor - INFO -    Response 1: 28,000 chars (100.0%)
-2025-08-18 19:53:49,156 - src.core.processor.simple_processor - INFO - 🎨 Custom user instructions detected:
-2025-08-18 19:53:49,156 - src.core.processor.simple_processor - INFO -    - role: 298 chars
-2025-08-18 19:53:49,156 - src.core.processor.simple_processor - INFO -    - script_structure: 2250 chars
-2025-08-18 19:53:49,156 - src.core.processor.simple_processor - INFO -    - tone_style: 266 chars
-2025-08-18 19:53:49,156 - src.core.processor.simple_processor - INFO -    - additional_instructions: 291 chars
-2025-08-18 19:53:49,156 - src.core.processor.simple_processor - INFO - 🎯 Section-specific requirements detected:
-2025-08-18 19:53:49,156 - src.core.processor.simple_processor - INFO -    🎬 Intro requirements: 4 found
-2025-08-18 19:53:49,157 - src.core.processor.simple_processor - INFO -    🎭 Outro requirements: 2 found
-2025-08-18 19:53:49,157 - src.core.processor.simple_processor - INFO -    📖 Content-specific: 4 requirements found
-2025-08-18 19:53:49,157 - src.core.processor.simple_processor - INFO - 📋 Master outline generation (attempt 1/3)
-2025-08-18 19:53:49,157 - src.core.processor.simple_processor - INFO -    Max tokens: 3500 (scaled for 1 responses)
-2025-08-18 19:53:49,157 - src.core.processor.litellm_processing - INFO - Processing text with model: gpt-5
-2025-08-18 19:53:49,157 - src.core.processor.litellm_processing - INFO - 🔧 API Call Parameters:
-2025-08-18 19:53:49,157 - src.core.processor.litellm_processing - INFO -    Model: gpt-5
-2025-08-18 19:53:49,157 - src.core.processor.litellm_processing - INFO -    Max completion tokens: auto (GPT-5 manages token limits)
-2025-08-18 19:53:49,157 - src.core.processor.litellm_processing - INFO -    Temperature: default (1.0) - GPT-5 uses default only
-2025-08-18 19:53:49,157 - src.core.processor.litellm_processing - INFO -    System prompt length: 19,318 chars
-2025-08-18 19:53:49,157 - src.core.processor.litellm_processing - INFO -    User message length: 40 chars
-[92m19:53:49 - LiteLLM:INFO[0m: utils.py:3260 - 
+2025-08-18 20:55:27,084 - scripts.youtube_to_transcript - INFO -   - yourRole: You are the calm, informed narrator transporting t...
+2025-08-18 20:55:27,084 - scripts.youtube_to_transcript - INFO - Target duration: 140 minutes
+2025-08-18 20:55:27,084 - scripts.youtube_to_transcript - INFO - Target transcript length: 140000 characters
+2025-08-18 20:55:27,084 - scripts.youtube_to_transcript - INFO - ============================================================
+2025-08-18 20:55:27,085 - scripts.youtube_to_transcript - INFO - 🔍 PROCESSING PATH DECISION ANALYSIS
+2025-08-18 20:55:27,085 - scripts.youtube_to_transcript - INFO - ============================================================
+2025-08-18 20:55:27,085 - scripts.youtube_to_transcript - INFO - 📝 Custom instructions present: True
+2025-08-18 20:55:27,085 - scripts.youtube_to_transcript - INFO - 🎯 RECREATION MODE should be activated
+2025-08-18 20:55:27,085 - scripts.youtube_to_transcript - INFO -    Expected behavior: Create entirely new content, ignore original subject
+2025-08-18 20:55:27,085 - scripts.youtube_to_transcript - INFO -    Role: You are the calm, informed narrator transporting the viewer into a realistic crisis scenario. You sh...
+2025-08-18 20:55:27,085 - scripts.youtube_to_transcript - INFO -    Structure provided: 2185 chars
+2025-08-18 20:55:27,085 - scripts.youtube_to_transcript - INFO - 🚀 SIMPLIFIED PROCESSING APPROACH
+2025-08-18 20:55:27,085 - scripts.youtube_to_transcript - INFO -    Target output: 140,000 chars
+2025-08-18 20:55:27,085 - scripts.youtube_to_transcript - INFO -    Method: Response-aware processor with optimal chunking
+2025-08-18 20:55:27,085 - scripts.youtube_to_transcript - INFO -    Features: Master document + response planning
+2025-08-18 20:55:27,085 - scripts.youtube_to_transcript - INFO - ============================================================
+2025-08-18 20:55:27,088 - src.core.processor.simple_processor - INFO - Initialized SimpleTranscriptProcessor with model: gpt-5
+2025-08-18 20:55:27,088 - src.core.processor.simple_processor - INFO - Model limits - Input: 1,600,000 chars, Output: 512,000 chars
+2025-08-18 20:55:27,088 - src.core.processor.simple_processor - INFO - 🚀 Starting Simple Transcript Processing
+2025-08-18 20:55:27,088 - src.core.processor.simple_processor - INFO - 📊 Target from duration: 140 min → 140,000 chars (using 1000 chars/min)
+2025-08-18 20:55:27,088 - src.core.processor.simple_processor - INFO - 📏 Target length: 140,000 characters
+2025-08-18 20:55:27,088 - src.core.processor.simple_processor - INFO - 📋 Step 1: Creating master document with response planning...
+2025-08-18 20:55:27,088 - src.core.processor.simple_processor - INFO - 🎯 Creating master document with response planning...
+2025-08-18 20:55:27,088 - src.core.processor.simple_processor - INFO - 🤖 GPT-5 detected: Using fixed 60,000 chars per response limit
+2025-08-18 20:55:27,088 - src.core.processor.simple_processor - INFO - 📊 Response Plan: 3 responses needed
+2025-08-18 20:55:27,089 - src.core.processor.simple_processor - INFO -    Response 1: 60,000 chars (42.9%)
+2025-08-18 20:55:27,089 - src.core.processor.simple_processor - INFO -    Response 2: 60,000 chars (42.9%)
+2025-08-18 20:55:27,089 - src.core.processor.simple_processor - INFO -    Response 3: 20,000 chars (14.3%)
+2025-08-18 20:55:27,089 - src.core.processor.simple_processor - INFO - 🎨 Custom user instructions detected:
+2025-08-18 20:55:27,089 - src.core.processor.simple_processor - INFO -    - role: 298 chars
+2025-08-18 20:55:27,089 - src.core.processor.simple_processor - INFO -    - script_structure: 2185 chars
+2025-08-18 20:55:27,089 - src.core.processor.simple_processor - INFO -    - tone_style: 266 chars
+2025-08-18 20:55:27,089 - src.core.processor.simple_processor - INFO -    - additional_instructions: 291 chars
+2025-08-18 20:55:27,089 - src.core.processor.simple_processor - INFO - 🎯 Section-specific requirements detected:
+2025-08-18 20:55:27,089 - src.core.processor.simple_processor - INFO -    🎬 Intro requirements: 4 found
+2025-08-18 20:55:27,089 - src.core.processor.simple_processor - INFO -    🎭 Outro requirements: 2 found
+2025-08-18 20:55:27,089 - src.core.processor.simple_processor - INFO -    📖 Content-specific: 4 requirements found
+2025-08-18 20:55:27,123 - src.core.processor.simple_processor - INFO - 📋 Master outline generation (attempt 1/3)
+2025-08-18 20:55:27,123 - src.core.processor.simple_processor - INFO -    Max tokens: 6500 (scaled for 3 responses)
+2025-08-18 20:55:27,123 - src.core.processor.litellm_processing - INFO - Processing text with model: gpt-5
+2025-08-18 20:55:27,123 - src.core.processor.litellm_processing - INFO - 🔧 API Call Parameters:
+2025-08-18 20:55:27,123 - src.core.processor.litellm_processing - INFO -    Model: gpt-5
+2025-08-18 20:55:27,123 - src.core.processor.litellm_processing - INFO -    Max completion tokens: auto (GPT-5 manages token limits)
+2025-08-18 20:55:27,124 - src.core.processor.litellm_processing - INFO -    Temperature: default (1.0) - GPT-5 uses default only
+2025-08-18 20:55:27,124 - src.core.processor.litellm_processing - INFO -    System prompt length: 26,689 chars
+2025-08-18 20:55:27,124 - src.core.processor.litellm_processing - INFO -    User message length: 40 chars
+[92m20:55:27 - LiteLLM:INFO[0m: utils.py:3260 - 
 LiteLLM completion() model= gpt-5; provider = openai
-2025-08-18 19:53:49,163 - LiteLLM - INFO - 
+2025-08-18 20:55:27,147 - LiteLLM - INFO - 
 LiteLLM completion() model= gpt-5; provider = openai
-[92m19:54:57 - LiteLLM:INFO[0m: utils.py:1262 - Wrapper: Completed Call, calling success_handler
-2025-08-18 19:54:57,775 - LiteLLM - INFO - Wrapper: Completed Call, calling success_handler
-2025-08-18 19:54:57,779 - src.core.processor.litellm_processing - INFO - 🔍 GPT-5 Debug Info:
-2025-08-18 19:54:57,783 - src.core.processor.litellm_processing - INFO -    Input tokens used: 4,450
-2025-08-18 19:54:57,783 - src.core.processor.litellm_processing - INFO -    Output tokens generated: 3,096
-2025-08-18 19:54:57,783 - src.core.processor.litellm_processing - INFO -    Total tokens: 7,546
-2025-08-18 19:54:57,783 - src.core.processor.litellm_processing - INFO -    Characters per output token: 1.54
-2025-08-18 19:54:57,783 - src.core.processor.litellm_processing - INFO -    Response object type: <class 'litellm.types.utils.ModelResponse'>
-2025-08-18 19:54:57,783 - src.core.processor.litellm_processing - INFO -    Response has choices: 1
-2025-08-18 19:54:57,783 - src.core.processor.litellm_processing - INFO -    First choice message length: 4,759 chars
-2025-08-18 19:54:57,783 - src.core.processor.litellm_processing - INFO -    First choice finish reason: stop
-2025-08-18 19:54:57,783 - src.core.processor.litellm_processing - INFO - Received response from LLM. Length: 4759 characters
-2025-08-18 19:54:57,783 - src.core.processor.simple_processor - INFO - ✅ Master outline validated: 4,759 chars
-2025-08-18 19:54:57,783 - src.core.processor.simple_processor - WARNING - ⚠️ No response titles found in master document
-2025-08-18 19:54:57,784 - src.core.processor.simple_processor - INFO - 📊 Master Document Structure Created:
-2025-08-18 19:54:57,784 - src.core.processor.simple_processor - INFO -    Total sections: 2
-2025-08-18 19:54:57,784 - src.core.processor.simple_processor - INFO -    Responses needed: 1
-2025-08-18 19:54:57,784 - src.core.processor.simple_processor - INFO -    Target length: 28,000 chars
-2025-08-18 19:54:57,784 - src.core.processor.simple_processor - INFO -    Duration: 28.0 minutes
-2025-08-18 19:54:57,785 - src.core.processor.simple_processor - INFO - 💾 Saved master document to data/transcripts/X0tAVPDIR9I_20250818_195349/processed/master_document.txt
-2025-08-18 19:54:57,785 - src.core.processor.simple_processor - INFO - 💾 Saved document structure to data/transcripts/X0tAVPDIR9I_20250818_195349/processed/document_structure.json
-2025-08-18 19:54:57,785 - src.core.processor.simple_processor - INFO - ✨ Step 2: Generating content with response planning...
-2025-08-18 19:54:57,785 - src.core.processor.simple_processor - INFO - 🏗️ Starting structured content generation:
-2025-08-18 19:54:57,785 - src.core.processor.simple_processor - INFO -    Total sections: 2
-2025-08-18 19:54:57,785 - src.core.processor.simple_processor - INFO -    Target length: 28,000 chars
-2025-08-18 19:54:57,785 - src.core.processor.simple_processor - INFO - 🔄 Generating Response 1/1: Content Part 1
-2025-08-18 19:54:57,785 - src.core.processor.simple_processor - INFO -    Target: 28,000 characters
-2025-08-18 19:54:57,785 - src.core.processor.simple_processor - INFO -    Sections: ['1.1', '1.2']
-2025-08-18 19:54:57,785 - src.core.processor.simple_processor - INFO -    Progress: 0/28,000 chars (0.0%)
-2025-08-18 19:54:57,785 - src.core.processor.simple_processor - INFO - 🎨 Custom user instructions detected:
-2025-08-18 19:54:57,785 - src.core.processor.simple_processor - INFO -    - role: 298 chars
-2025-08-18 19:54:57,785 - src.core.processor.simple_processor - INFO -    - script_structure: 2250 chars
-2025-08-18 19:54:57,785 - src.core.processor.simple_processor - INFO -    - tone_style: 266 chars
-2025-08-18 19:54:57,785 - src.core.processor.simple_processor - INFO -    - additional_instructions: 291 chars
-2025-08-18 19:54:57,786 - src.core.processor.simple_processor - INFO - 🎯 Section-specific requirements detected:
-2025-08-18 19:54:57,786 - src.core.processor.simple_processor - INFO -    🎬 Intro requirements: 4 found
-2025-08-18 19:54:57,786 - src.core.processor.simple_processor - INFO -    🎭 Outro requirements: 2 found
-2025-08-18 19:54:57,786 - src.core.processor.simple_processor - INFO -    📖 Content-specific: 4 requirements found
-2025-08-18 19:54:57,786 - src.core.processor.simple_processor - INFO - 🔧 Token Conversion: 28,000 chars → 7,000 tokens (limit: 128,000)
-2025-08-18 19:54:57,786 - src.core.processor.simple_processor - INFO - 🎯 Section-Aware Generation:
-2025-08-18 19:54:57,786 - src.core.processor.simple_processor - INFO -    Target: 28,000 characters
-2025-08-18 19:54:57,786 - src.core.processor.simple_processor - INFO -    Acceptable range: 23,800 - 32,199 characters
-2025-08-18 19:54:57,786 - src.core.processor.simple_processor - INFO -    Tokens requested: 7,000 tokens
-2025-08-18 19:54:57,786 - src.core.processor.simple_processor - INFO - 🔧 Token Conversion: 28,000 chars → 7,000 tokens (limit: 128,000)
-2025-08-18 19:54:57,787 - src.core.processor.litellm_processing - INFO - Processing text with model: gpt-5
-2025-08-18 19:54:57,787 - src.core.processor.litellm_processing - INFO - 🔧 API Call Parameters:
-2025-08-18 19:54:57,787 - src.core.processor.litellm_processing - INFO -    Model: gpt-5
-2025-08-18 19:54:57,787 - src.core.processor.litellm_processing - INFO -    Max completion tokens: auto (GPT-5 manages token limits)
-2025-08-18 19:54:57,787 - src.core.processor.litellm_processing - INFO -    Temperature: default (1.0) - GPT-5 uses default only
-2025-08-18 19:54:57,787 - src.core.processor.litellm_processing - INFO -    System prompt length: 13,951 chars
-2025-08-18 19:54:57,787 - src.core.processor.litellm_processing - INFO -    User message length: 57 chars
-[92m19:54:57 - LiteLLM:INFO[0m: utils.py:3260 - 
+[92m20:56:44 - LiteLLM:INFO[0m: utils.py:1262 - Wrapper: Completed Call, calling success_handler
+2025-08-18 20:56:44,243 - LiteLLM - INFO - Wrapper: Completed Call, calling success_handler
+2025-08-18 20:56:44,246 - src.core.processor.litellm_processing - INFO - 🔍 GPT-5 Debug Info:
+2025-08-18 20:56:44,248 - src.core.processor.litellm_processing - INFO -    Input tokens used: 6,114
+2025-08-18 20:56:44,248 - src.core.processor.litellm_processing - INFO -    Output tokens generated: 4,177
+2025-08-18 20:56:44,248 - src.core.processor.litellm_processing - INFO -    Total tokens: 10,291
+2025-08-18 20:56:44,248 - src.core.processor.litellm_processing - INFO -    Characters per output token: 3.03
+2025-08-18 20:56:44,248 - src.core.processor.litellm_processing - INFO -    Response object type: <class 'litellm.types.utils.ModelResponse'>
+2025-08-18 20:56:44,248 - src.core.processor.litellm_processing - INFO -    Response has choices: 1
+2025-08-18 20:56:44,248 - src.core.processor.litellm_processing - INFO -    First choice message length: 12,663 chars
+2025-08-18 20:56:44,248 - src.core.processor.litellm_processing - INFO -    First choice finish reason: stop
+2025-08-18 20:56:44,249 - src.core.processor.litellm_processing - INFO - Received response from LLM. Length: 12663 characters
+2025-08-18 20:56:44,249 - src.core.processor.simple_processor - INFO - ✅ Master outline validated: 12,663 chars
+2025-08-18 20:56:44,249 - src.core.processor.simple_processor - WARNING - ⚠️ No response titles found in master document
+2025-08-18 20:56:44,250 - src.core.processor.simple_processor - INFO - 📊 Master Document Structure Created:
+2025-08-18 20:56:44,250 - src.core.processor.simple_processor - INFO -    Total sections: 8
+2025-08-18 20:56:44,250 - src.core.processor.simple_processor - INFO -    Responses needed: 3
+2025-08-18 20:56:44,250 - src.core.processor.simple_processor - INFO -    Target length: 140,000 chars
+2025-08-18 20:56:44,250 - src.core.processor.simple_processor - INFO -    Duration: 140.0 minutes
+2025-08-18 20:56:44,250 - src.core.processor.simple_processor - INFO - 💾 Saved master document to data/transcripts/X0tAVPDIR9I_20250818_205527/processed/master_document.txt
+2025-08-18 20:56:44,251 - src.core.processor.simple_processor - INFO - 💾 Saved document structure to data/transcripts/X0tAVPDIR9I_20250818_205527/processed/document_structure.json
+2025-08-18 20:56:44,251 - src.core.processor.simple_processor - INFO - ✨ Step 2: Generating content with response planning...
+2025-08-18 20:56:44,251 - src.core.processor.simple_processor - INFO - 🏗️ Starting structured content generation:
+2025-08-18 20:56:44,251 - src.core.processor.simple_processor - INFO -    Total sections: 8
+2025-08-18 20:56:44,251 - src.core.processor.simple_processor - INFO -    Target length: 140,000 chars
+2025-08-18 20:56:44,251 - src.core.processor.simple_processor - INFO - 🔄 Generating Response 1/3: Content Part 1
+2025-08-18 20:56:44,251 - src.core.processor.simple_processor - INFO -    Target: 60,000 characters
+2025-08-18 20:56:44,251 - src.core.processor.simple_processor - INFO -    Sections: ['1.1', '1.2', '1.3']
+2025-08-18 20:56:44,251 - src.core.processor.simple_processor - INFO -    Progress: 0/140,000 chars (0.0%)
+2025-08-18 20:56:44,251 - src.core.processor.simple_processor - INFO - 🎨 Custom user instructions detected:
+2025-08-18 20:56:44,251 - src.core.processor.simple_processor - INFO -    - role: 298 chars
+2025-08-18 20:56:44,251 - src.core.processor.simple_processor - INFO -    - script_structure: 2185 chars
+2025-08-18 20:56:44,251 - src.core.processor.simple_processor - INFO -    - tone_style: 266 chars
+2025-08-18 20:56:44,251 - src.core.processor.simple_processor - INFO -    - additional_instructions: 291 chars
+2025-08-18 20:56:44,252 - src.core.processor.simple_processor - INFO - 🎯 Section-specific requirements detected:
+2025-08-18 20:56:44,252 - src.core.processor.simple_processor - INFO -    🎬 Intro requirements: 4 found
+2025-08-18 20:56:44,252 - src.core.processor.simple_processor - INFO -    🎭 Outro requirements: 2 found
+2025-08-18 20:56:44,252 - src.core.processor.simple_processor - INFO -    📖 Content-specific: 4 requirements found
+2025-08-18 20:56:44,252 - src.core.processor.simple_processor - INFO - 🔧 Token Conversion: 60,000 chars → 15,000 tokens (limit: 128,000)
+2025-08-18 20:56:44,252 - src.core.processor.simple_processor - INFO - 🎯 Section-Aware Generation:
+2025-08-18 20:56:44,252 - src.core.processor.simple_processor - INFO -    Target: 60,000 characters
+2025-08-18 20:56:44,252 - src.core.processor.simple_processor - INFO -    Acceptable range: 51,000 - 69,000 characters
+2025-08-18 20:56:44,252 - src.core.processor.simple_processor - INFO -    Tokens requested: 15,000 tokens
+2025-08-18 20:56:44,252 - src.core.processor.simple_processor - INFO - 🔧 Token Conversion: 60,000 chars → 15,000 tokens (limit: 128,000)
+2025-08-18 20:56:44,252 - src.core.processor.litellm_processing - INFO - Processing text with model: gpt-5
+2025-08-18 20:56:44,252 - src.core.processor.litellm_processing - INFO - 🔧 API Call Parameters:
+2025-08-18 20:56:44,252 - src.core.processor.litellm_processing - INFO -    Model: gpt-5
+2025-08-18 20:56:44,252 - src.core.processor.litellm_processing - INFO -    Max completion tokens: auto (GPT-5 manages token limits)
+2025-08-18 20:56:44,252 - src.core.processor.litellm_processing - INFO -    Temperature: default (1.0) - GPT-5 uses default only
+2025-08-18 20:56:44,252 - src.core.processor.litellm_processing - INFO -    System prompt length: 12,825 chars
+2025-08-18 20:56:44,253 - src.core.processor.litellm_processing - INFO -    User message length: 57 chars
+[92m20:56:44 - LiteLLM:INFO[0m: utils.py:3260 - 
 LiteLLM completion() model= gpt-5; provider = openai
-2025-08-18 19:54:57,788 - LiteLLM - INFO - 
+2025-08-18 20:56:44,253 - LiteLLM - INFO - 
 LiteLLM completion() model= gpt-5; provider = openai
-2025-08-18 19:56:26,545 - openai._base_client - INFO - Retrying request to /chat/completions in 0.442062 seconds
-2025-08-18 19:57:49,897 - openai._base_client - INFO - Retrying request to /chat/completions in 0.860743 seconds
-2025-08-18 19:57:50,466 - __main__ - INFO - Getting transcript list
-2025-08-18 19:57:50,466 - werkzeug - INFO - 127.0.0.1 - - [18/Aug/2025 19:57:50] "GET /api/transcripts HTTP/1.1" 200 -
-2025-08-18 19:57:50,468 - werkzeug - INFO - 127.0.0.1 - - [18/Aug/2025 19:57:50] "GET /api/prompts HTTP/1.1" 200 -
-2025-08-18 19:57:50,472 - werkzeug - INFO - 127.0.0.1 - - [18/Aug/2025 19:57:50] "GET /api/projects HTTP/1.1" 200 -
-2025-08-18 19:57:55,629 - werkzeug - INFO - 127.0.0.1 - - [18/Aug/2025 19:57:55] "GET /api/config/apikeys HTTP/1.1" 200 -
-2025-08-18 19:57:55,630 - werkzeug - INFO - 127.0.0.1 - - [18/Aug/2025 19:57:55] "GET /api/config/models HTTP/1.1" 200 -
-2025-08-18 19:57:55,635 - werkzeug - INFO - 127.0.0.1 - - [18/Aug/2025 19:57:55] "GET /api/config/defaultmodel HTTP/1.1" 200 -
-2025-08-18 19:57:58,267 - werkzeug - INFO - 127.0.0.1 - - [18/Aug/2025 19:57:58] "GET /api/projects/X0tAVPDIR9I_20250818_193512/transcript HTTP/1.1" 200 -
-2025-08-18 19:58:01,149 - __main__ - INFO - Getting transcript list
-2025-08-18 19:58:01,150 - werkzeug - INFO - 127.0.0.1 - - [18/Aug/2025 19:58:01] "GET /api/transcripts HTTP/1.1" 200 -
-2025-08-18 19:58:01,150 - werkzeug - INFO - 127.0.0.1 - - [18/Aug/2025 19:58:01] "GET /api/prompts HTTP/1.1" 200 -
-2025-08-18 19:58:01,152 - werkzeug - INFO - 127.0.0.1 - - [18/Aug/2025 19:58:01] "GET /api/projects HTTP/1.1" 200 -
-2025-08-18 19:58:40,871 - __main__ - INFO - Getting transcript list
-2025-08-18 19:58:40,874 - werkzeug - INFO - 127.0.0.1 - - [18/Aug/2025 19:58:40] "GET /api/transcripts HTTP/1.1" 200 -
-2025-08-18 19:58:40,875 - werkzeug - INFO - 127.0.0.1 - - [18/Aug/2025 19:58:40] "GET /api/prompts HTTP/1.1" 200 -
-2025-08-18 19:58:40,877 - werkzeug - INFO - 127.0.0.1 - - [18/Aug/2025 19:58:40] "GET /api/projects HTTP/1.1" 200 -
-[92m20:00:05 - LiteLLM:INFO[0m: utils.py:1262 - Wrapper: Completed Call, calling success_handler
-2025-08-18 20:00:05,242 - LiteLLM - INFO - Wrapper: Completed Call, calling success_handler
-2025-08-18 20:00:05,243 - src.core.processor.litellm_processing - INFO - 🔍 GPT-5 Debug Info:
-2025-08-18 20:00:05,245 - src.core.processor.litellm_processing - INFO -    Input tokens used: 3,292
-2025-08-18 20:00:05,245 - src.core.processor.litellm_processing - INFO -    Output tokens generated: 8,285
-2025-08-18 20:00:05,245 - src.core.processor.litellm_processing - INFO -    Total tokens: 11,577
-2025-08-18 20:00:05,245 - src.core.processor.litellm_processing - INFO -    Characters per output token: 3.53
-2025-08-18 20:00:05,245 - src.core.processor.litellm_processing - INFO -    Response object type: <class 'litellm.types.utils.ModelResponse'>
-2025-08-18 20:00:05,245 - src.core.processor.litellm_processing - INFO -    Response has choices: 1
-2025-08-18 20:00:05,245 - src.core.processor.litellm_processing - INFO -    First choice message length: 29,285 chars
-2025-08-18 20:00:05,245 - src.core.processor.litellm_processing - INFO -    First choice finish reason: stop
-2025-08-18 20:00:05,245 - src.core.processor.litellm_processing - INFO - Received response from LLM. Length: 29285 characters
-2025-08-18 20:00:05,245 - src.core.processor.simple_processor - INFO -    ✅ Length acceptable: 29,285 characters (within range)
-2025-08-18 20:00:05,245 - src.core.processor.simple_processor - INFO - ✅ Response 1 complete:
-2025-08-18 20:00:05,245 - src.core.processor.simple_processor - INFO -    Generated: 29,285 characters
-2025-08-18 20:00:05,245 - src.core.processor.simple_processor - INFO -    Target: 28,000 characters
-2025-08-18 20:00:05,245 - src.core.processor.simple_processor - INFO -    Precision: 1.05x (+4.6%)
-2025-08-18 20:00:05,246 - src.core.processor.simple_processor - INFO - 💾 Saved 'Content Part 1' and progress to data/transcripts/X0tAVPDIR9I_20250818_195349/processed
-2025-08-18 20:00:05,246 - src.core.processor.simple_processor - INFO - 🎉 Structured generation complete!
-2025-08-18 20:00:05,246 - src.core.processor.simple_processor - INFO -    Final length: 29,285 characters
-2025-08-18 20:00:05,246 - src.core.processor.simple_processor - INFO -    Target length: 28,000 characters
-2025-08-18 20:00:05,246 - src.core.processor.simple_processor - INFO -    Overall precision: 1.05x (+4.6%)
-2025-08-18 20:00:05,246 - src.core.processor.simple_processor - INFO -    Sections completed: 2
-2025-08-18 20:00:05,246 - src.core.processor.simple_processor - INFO -    Sections in progress: 0
-2025-08-18 20:00:05,246 - src.core.processor.simple_processor - INFO - 🎉 Processing complete! Generated 29,285 characters
-2025-08-18 20:00:05,247 - src.core.storage.transcript_storage - INFO - Saved processed transcript: data/transcripts/X0tAVPDIR9I_20250818_195349/processed/narrative_transcript.txt
-2025-08-18 20:00:05,249 - scripts.youtube_to_transcript - INFO - === Processing Details ===
-2025-08-18 20:00:05,249 - scripts.youtube_to_transcript - INFO - Processed as a single chunk (no chunking applied)
-2025-08-18 20:00:05,249 - scripts.youtube_to_transcript - INFO - 🎉 PROCESSING COMPLETE!
-2025-08-18 20:00:05,249 - scripts.youtube_to_transcript - INFO - ================================================================================
-2025-08-18 20:00:05,250 - scripts.youtube_to_transcript - INFO - 📁 Output file: data/transcripts/X0tAVPDIR9I_20250818_195349/processed/narrative_transcript.txt
-2025-08-18 20:00:05,250 - scripts.youtube_to_transcript - INFO - 📊 RESULTS SUMMARY:
-2025-08-18 20:00:05,250 - scripts.youtube_to_transcript - INFO -    ✨ Processed transcript: 29,285 characters
-2025-08-18 20:00:05,250 - scripts.youtube_to_transcript - INFO -    🎯 Target length: 28,000 characters
-2025-08-18 20:00:05,250 - scripts.youtube_to_transcript - INFO -    📏 Ratio to target: 1.05x
-2025-08-18 20:00:05,250 - scripts.youtube_to_transcript - INFO -    ✅ TARGET ACHIEVED - Within 20% of requested length!
-2025-08-18 20:00:05,250 - scripts.youtube_to_transcript - INFO - ================================================================================
-2025-08-18 20:00:05,250 - scripts.youtube_to_transcript - INFO - 🎉 TRANSCRIPT PROCESSING COMPLETE - RETURNING EARLY
-2025-08-18 20:00:05,250 - scripts.youtube_to_transcript - INFO -    Audio generation will be skipped for this version
-2025-08-18 20:00:05,250 - scripts.youtube_to_transcript - INFO -    Transcript is ready for use!
-2025-08-18 20:00:05,250 - __main__ - INFO - Pipeline execution started for URL: https://www.youtube.com/watch?v=X0tAVPDIR9I
-2025-08-18 20:00:05,251 - __main__ - INFO - Results will be saved to: data/transcripts/X0tAVPDIR9I_20250818_195349
-2025-08-18 20:00:05,251 - werkzeug - INFO - 127.0.0.1 - - [18/Aug/2025 20:00:05] "POST /api/transcripts/process HTTP/1.1" 200 -
-2025-08-18 20:42:33,755 - __main__ - INFO - Getting transcript list
-2025-08-18 20:42:33,758 - werkzeug - INFO - 127.0.0.1 - - [18/Aug/2025 20:42:33] "GET /api/transcripts HTTP/1.1" 200 -
-2025-08-18 20:42:33,762 - werkzeug - INFO - 127.0.0.1 - - [18/Aug/2025 20:42:33] "GET /api/prompts HTTP/1.1" 200 -
-2025-08-18 20:42:33,768 - werkzeug - INFO - 127.0.0.1 - - [18/Aug/2025 20:42:33] "GET /api/projects HTTP/1.1" 200 -
-2025-08-18 20:42:34,784 - __main__ - INFO - Getting transcript list
-2025-08-18 20:42:34,785 - werkzeug - INFO - 127.0.0.1 - - [18/Aug/2025 20:42:34] "GET /api/transcripts HTTP/1.1" 200 -
-2025-08-18 20:42:34,787 - werkzeug - INFO - 127.0.0.1 - - [18/Aug/2025 20:42:34] "GET /api/prompts HTTP/1.1" 200 -
-2025-08-18 20:42:34,788 - werkzeug - INFO - 127.0.0.1 - - [18/Aug/2025 20:42:34] "GET /api/projects HTTP/1.1" 200 -
-2025-08-18 20:42:36,043 - werkzeug - INFO - 127.0.0.1 - - [18/Aug/2025 20:42:36] "GET /api/projects/X0tAVPDIR9I_20250818_195349/transcript HTTP/1.1" 200 -
+[92m20:59:06 - LiteLLM:INFO[0m: utils.py:1262 - Wrapper: Completed Call, calling success_handler
+2025-08-18 20:59:06,673 - LiteLLM - INFO - Wrapper: Completed Call, calling success_handler
+2025-08-18 20:59:06,675 - src.core.processor.litellm_processing - INFO - 🔍 GPT-5 Debug Info:
+2025-08-18 20:59:06,678 - src.core.processor.litellm_processing - INFO -    Input tokens used: 2,978
+2025-08-18 20:59:06,679 - src.core.processor.litellm_processing - INFO -    Output tokens generated: 8,192
+2025-08-18 20:59:06,679 - src.core.processor.litellm_processing - INFO -    Total tokens: 11,170
+2025-08-18 20:59:06,679 - src.core.processor.litellm_processing - INFO -    Characters per output token: 3.32
+2025-08-18 20:59:06,679 - src.core.processor.litellm_processing - INFO -    Response object type: <class 'litellm.types.utils.ModelResponse'>
+2025-08-18 20:59:06,679 - src.core.processor.litellm_processing - INFO -    Response has choices: 1
+2025-08-18 20:59:06,679 - src.core.processor.litellm_processing - INFO -    First choice message length: 27,233 chars
+2025-08-18 20:59:06,679 - src.core.processor.litellm_processing - INFO -    First choice finish reason: stop
+2025-08-18 20:59:06,679 - src.core.processor.litellm_processing - INFO - Received response from LLM. Length: 27233 characters
+2025-08-18 20:59:06,679 - src.core.processor.simple_processor - WARNING -    📉 TOO SHORT: 27,233 chars below target (60,000)
+2025-08-18 20:59:06,679 - src.core.processor.simple_processor - INFO -    🔄 Expanding content by ~120% through rewriting...
+2025-08-18 20:59:06,679 - src.core.processor.simple_processor - INFO - 🎨 Custom user instructions detected:
+2025-08-18 20:59:06,679 - src.core.processor.simple_processor - INFO -    - role: 298 chars
+2025-08-18 20:59:06,679 - src.core.processor.simple_processor - INFO -    - script_structure: 2185 chars
+2025-08-18 20:59:06,679 - src.core.processor.simple_processor - INFO -    - tone_style: 266 chars
+2025-08-18 20:59:06,679 - src.core.processor.simple_processor - INFO -    - additional_instructions: 291 chars
+2025-08-18 20:59:06,679 - src.core.processor.simple_processor - INFO -    🔄 Expansion attempt 1/3...
+2025-08-18 20:59:06,679 - src.core.processor.simple_processor - INFO - 🔧 Token Conversion: 72,000 chars → 18,000 tokens (limit: 128,000)
+2025-08-18 20:59:06,679 - src.core.processor.litellm_processing - INFO - Processing text with model: gpt-5
+2025-08-18 20:59:06,679 - src.core.processor.litellm_processing - INFO - 🔧 API Call Parameters:
+2025-08-18 20:59:06,679 - src.core.processor.litellm_processing - INFO -    Model: gpt-5
+2025-08-18 20:59:06,679 - src.core.processor.litellm_processing - INFO -    Max completion tokens: auto (GPT-5 manages token limits)
+2025-08-18 20:59:06,679 - src.core.processor.litellm_processing - INFO -    Temperature: default (1.0) - GPT-5 uses default only
+2025-08-18 20:59:06,679 - src.core.processor.litellm_processing - INFO -    System prompt length: 31,450 chars
+2025-08-18 20:59:06,679 - src.core.processor.litellm_processing - INFO -    User message length: 43 chars
+[92m20:59:06 - LiteLLM:INFO[0m: utils.py:3260 - 
+LiteLLM completion() model= gpt-5; provider = openai
+2025-08-18 20:59:06,680 - LiteLLM - INFO - 
+LiteLLM completion() model= gpt-5; provider = openai
+[92m21:05:58 - LiteLLM:INFO[0m: utils.py:1262 - Wrapper: Completed Call, calling success_handler
+2025-08-18 21:05:58,993 - LiteLLM - INFO - Wrapper: Completed Call, calling success_handler
+2025-08-18 21:05:58,997 - src.core.processor.litellm_processing - INFO - 🔍 GPT-5 Debug Info:
+2025-08-18 21:05:59,003 - src.core.processor.litellm_processing - INFO -    Input tokens used: 6,918
+2025-08-18 21:05:59,003 - src.core.processor.litellm_processing - INFO -    Output tokens generated: 17,604
+2025-08-18 21:05:59,003 - src.core.processor.litellm_processing - INFO -    Total tokens: 24,522
+2025-08-18 21:05:59,003 - src.core.processor.litellm_processing - INFO -    Characters per output token: 4.12
+2025-08-18 21:05:59,003 - src.core.processor.litellm_processing - INFO -    Response object type: <class 'litellm.types.utils.ModelResponse'>
+2025-08-18 21:05:59,003 - src.core.processor.litellm_processing - INFO -    Response has choices: 1
+2025-08-18 21:05:59,003 - src.core.processor.litellm_processing - INFO -    First choice message length: 72,478 chars
+2025-08-18 21:05:59,003 - src.core.processor.litellm_processing - INFO -    First choice finish reason: stop
+2025-08-18 21:05:59,003 - src.core.processor.litellm_processing - INFO - Received response from LLM. Length: 72478 characters
+2025-08-18 21:05:59,003 - src.core.processor.simple_processor - WARNING -    📏 Attempt 1 result (72,478 chars) outside target range (51,000-69,000)
+2025-08-18 21:05:59,003 - src.core.processor.simple_processor - INFO -    🔄 Widening range for next attempt: 48,000-72,000
+2025-08-18 21:05:59,003 - src.core.processor.simple_processor - INFO -    🔄 Expansion attempt 2/3...
+2025-08-18 21:05:59,004 - src.core.processor.simple_processor - INFO - 🔧 Token Conversion: 72,000 chars → 18,000 tokens (limit: 128,000)
+2025-08-18 21:05:59,004 - src.core.processor.litellm_processing - INFO - Processing text with model: gpt-5
+2025-08-18 21:05:59,004 - src.core.processor.litellm_processing - INFO - 🔧 API Call Parameters:
+2025-08-18 21:05:59,004 - src.core.processor.litellm_processing - INFO -    Model: gpt-5
+2025-08-18 21:05:59,004 - src.core.processor.litellm_processing - INFO -    Max completion tokens: auto (GPT-5 manages token limits)
+2025-08-18 21:05:59,004 - src.core.processor.litellm_processing - INFO -    Temperature: default (1.0) - GPT-5 uses default only
+2025-08-18 21:05:59,004 - src.core.processor.litellm_processing - INFO -    System prompt length: 31,450 chars
+2025-08-18 21:05:59,004 - src.core.processor.litellm_processing - INFO -    User message length: 43 chars
+[92m21:05:59 - LiteLLM:INFO[0m: utils.py:3260 - 
+LiteLLM completion() model= gpt-5; provider = openai
+2025-08-18 21:05:59,005 - LiteLLM - INFO - 
+LiteLLM completion() model= gpt-5; provider = openai
+[92m21:10:00 - LiteLLM:INFO[0m: utils.py:1262 - Wrapper: Completed Call, calling success_handler
+2025-08-18 21:10:00,451 - LiteLLM - INFO - Wrapper: Completed Call, calling success_handler
+2025-08-18 21:10:00,454 - src.core.processor.litellm_processing - INFO - 🔍 GPT-5 Debug Info:
+2025-08-18 21:10:00,455 - src.core.processor.litellm_processing - INFO -    Input tokens used: 6,918
+2025-08-18 21:10:00,459 - src.core.processor.litellm_processing - INFO -    Output tokens generated: 14,131
+2025-08-18 21:10:00,459 - src.core.processor.litellm_processing - INFO -    Total tokens: 21,049
+2025-08-18 21:10:00,459 - src.core.processor.litellm_processing - INFO -    Characters per output token: 4.12
+2025-08-18 21:10:00,459 - src.core.processor.litellm_processing - INFO -    Response object type: <class 'litellm.types.utils.ModelResponse'>
+2025-08-18 21:10:00,459 - src.core.processor.litellm_processing - INFO -    Response has choices: 1
+2025-08-18 21:10:00,459 - src.core.processor.litellm_processing - INFO -    First choice message length: 58,217 chars
+2025-08-18 21:10:00,459 - src.core.processor.litellm_processing - INFO -    First choice finish reason: stop
+2025-08-18 21:10:00,459 - src.core.processor.litellm_processing - INFO - Received response from LLM. Length: 58217 characters
+2025-08-18 21:10:00,459 - src.core.processor.simple_processor - INFO -    ✅ Expanded successfully on attempt 2: 58,217 characters
+2025-08-18 21:10:00,459 - src.core.processor.simple_processor - INFO - ✅ Response 1 complete:
+2025-08-18 21:10:00,460 - src.core.processor.simple_processor - INFO -    Generated: 58,217 characters
+2025-08-18 21:10:00,460 - src.core.processor.simple_processor - INFO -    Target: 60,000 characters
+2025-08-18 21:10:00,460 - src.core.processor.simple_processor - INFO -    Precision: 0.97x (-3.0%)
+2025-08-18 21:10:00,460 - src.core.processor.simple_processor - INFO -    Current section: 1.3 - Section 1.3
+2025-08-18 21:10:00,460 - src.core.processor.simple_processor - INFO - 💾 Saved 'Content Part 1' and progress to data/transcripts/X0tAVPDIR9I_20250818_205527/processed
+2025-08-18 21:10:02,465 - src.core.processor.simple_processor - INFO - 🔄 Generating Response 2/3: Content Part 2
+2025-08-18 21:10:02,465 - src.core.processor.simple_processor - INFO -    Target: 60,000 characters
+2025-08-18 21:10:02,465 - src.core.processor.simple_processor - INFO -    Sections: ['2.1', '2.2', '2.3']
+2025-08-18 21:10:02,465 - src.core.processor.simple_processor - INFO -    Progress: 58,217/140,000 chars (41.6%)
+2025-08-18 21:10:02,465 - src.core.processor.simple_processor - INFO - 🎨 Custom user instructions detected:
+2025-08-18 21:10:02,466 - src.core.processor.simple_processor - INFO -    - role: 298 chars
+2025-08-18 21:10:02,466 - src.core.processor.simple_processor - INFO -    - script_structure: 2185 chars
+2025-08-18 21:10:02,466 - src.core.processor.simple_processor - INFO -    - tone_style: 266 chars
+2025-08-18 21:10:02,466 - src.core.processor.simple_processor - INFO -    - additional_instructions: 291 chars
+2025-08-18 21:10:02,466 - src.core.processor.simple_processor - INFO - 🎯 Section-specific requirements detected:
+2025-08-18 21:10:02,466 - src.core.processor.simple_processor - INFO -    🎬 Intro requirements: 4 found
+2025-08-18 21:10:02,466 - src.core.processor.simple_processor - INFO -    🎭 Outro requirements: 2 found
+2025-08-18 21:10:02,466 - src.core.processor.simple_processor - INFO -    📖 Content-specific: 4 requirements found
+2025-08-18 21:10:02,466 - src.core.processor.simple_processor - INFO - 🔧 Token Conversion: 60,000 chars → 15,000 tokens (limit: 128,000)
+2025-08-18 21:10:02,466 - src.core.processor.simple_processor - INFO - 🎯 Section-Aware Generation:
+2025-08-18 21:10:02,466 - src.core.processor.simple_processor - INFO -    Target: 60,000 characters
+2025-08-18 21:10:02,466 - src.core.processor.simple_processor - INFO -    Acceptable range: 51,000 - 69,000 characters
+2025-08-18 21:10:02,466 - src.core.processor.simple_processor - INFO -    Tokens requested: 15,000 tokens
+2025-08-18 21:10:02,466 - src.core.processor.simple_processor - INFO - 🔧 Token Conversion: 60,000 chars → 15,000 tokens (limit: 128,000)
+2025-08-18 21:10:02,466 - src.core.processor.litellm_processing - INFO - Processing text with model: gpt-5
+2025-08-18 21:10:02,466 - src.core.processor.litellm_processing - INFO - 🔧 API Call Parameters:
+2025-08-18 21:10:02,466 - src.core.processor.litellm_processing - INFO -    Model: gpt-5
+2025-08-18 21:10:02,467 - src.core.processor.litellm_processing - INFO -    Max completion tokens: auto (GPT-5 manages token limits)
+2025-08-18 21:10:02,467 - src.core.processor.litellm_processing - INFO -    Temperature: default (1.0) - GPT-5 uses default only
+2025-08-18 21:10:02,467 - src.core.processor.litellm_processing - INFO -    System prompt length: 13,614 chars
+2025-08-18 21:10:02,467 - src.core.processor.litellm_processing - INFO -    User message length: 57 chars
+[92m21:10:02 - LiteLLM:INFO[0m: utils.py:3260 - 
+LiteLLM completion() model= gpt-5; provider = openai
+2025-08-18 21:10:02,468 - LiteLLM - INFO - 
+LiteLLM completion() model= gpt-5; provider = openai
+2025-08-18 21:11:40,907 - __main__ - INFO - Getting transcript list
+2025-08-18 21:11:40,913 - werkzeug - INFO - 127.0.0.1 - - [18/Aug/2025 21:11:40] "GET /api/transcripts HTTP/1.1" 200 -
+2025-08-18 21:11:40,924 - werkzeug - INFO - 127.0.0.1 - - [18/Aug/2025 21:11:40] "GET /api/prompts HTTP/1.1" 200 -
+2025-08-18 21:11:40,939 - werkzeug - INFO - 127.0.0.1 - - [18/Aug/2025 21:11:40] "GET /api/projects HTTP/1.1" 200 -
+[92m21:12:40 - LiteLLM:INFO[0m: utils.py:1262 - Wrapper: Completed Call, calling success_handler
+2025-08-18 21:12:40,330 - LiteLLM - INFO - Wrapper: Completed Call, calling success_handler
+2025-08-18 21:12:40,332 - src.core.processor.litellm_processing - INFO - 🔍 GPT-5 Debug Info:
+2025-08-18 21:12:40,333 - src.core.processor.litellm_processing - INFO -    Input tokens used: 3,128
+2025-08-18 21:12:40,333 - src.core.processor.litellm_processing - INFO -    Output tokens generated: 8,526
+2025-08-18 21:12:40,333 - src.core.processor.litellm_processing - INFO -    Total tokens: 11,654
+2025-08-18 21:12:40,333 - src.core.processor.litellm_processing - INFO -    Characters per output token: 3.51
+2025-08-18 21:12:40,333 - src.core.processor.litellm_processing - INFO -    Response object type: <class 'litellm.types.utils.ModelResponse'>
+2025-08-18 21:12:40,333 - src.core.processor.litellm_processing - INFO -    Response has choices: 1
+2025-08-18 21:12:40,333 - src.core.processor.litellm_processing - INFO -    First choice message length: 29,906 chars
+2025-08-18 21:12:40,333 - src.core.processor.litellm_processing - INFO -    First choice finish reason: stop
+2025-08-18 21:12:40,333 - src.core.processor.litellm_processing - INFO - Received response from LLM. Length: 29906 characters
+2025-08-18 21:12:40,333 - src.core.processor.simple_processor - WARNING -    📉 TOO SHORT: 29,906 chars below target (60,000)
+2025-08-18 21:12:40,333 - src.core.processor.simple_processor - INFO -    🔄 Expanding content by ~100% through rewriting...
+2025-08-18 21:12:40,333 - src.core.processor.simple_processor - INFO - 🎨 Custom user instructions detected:
+2025-08-18 21:12:40,333 - src.core.processor.simple_processor - INFO -    - role: 298 chars
+2025-08-18 21:12:40,333 - src.core.processor.simple_processor - INFO -    - script_structure: 2185 chars
+2025-08-18 21:12:40,333 - src.core.processor.simple_processor - INFO -    - tone_style: 266 chars
+2025-08-18 21:12:40,333 - src.core.processor.simple_processor - INFO -    - additional_instructions: 291 chars
+2025-08-18 21:12:40,334 - src.core.processor.simple_processor - INFO -    🔄 Expansion attempt 1/3...
+2025-08-18 21:12:40,334 - src.core.processor.simple_processor - INFO - 🔧 Token Conversion: 72,000 chars → 18,000 tokens (limit: 128,000)
+2025-08-18 21:12:40,334 - src.core.processor.litellm_processing - INFO - Processing text with model: gpt-5
+2025-08-18 21:12:40,334 - src.core.processor.litellm_processing - INFO - 🔧 API Call Parameters:
+2025-08-18 21:12:40,334 - src.core.processor.litellm_processing - INFO -    Model: gpt-5
+2025-08-18 21:12:40,334 - src.core.processor.litellm_processing - INFO -    Max completion tokens: auto (GPT-5 manages token limits)
+2025-08-18 21:12:40,334 - src.core.processor.litellm_processing - INFO -    Temperature: default (1.0) - GPT-5 uses default only
+2025-08-18 21:12:40,334 - src.core.processor.litellm_processing - INFO -    System prompt length: 34,123 chars
+2025-08-18 21:12:40,334 - src.core.processor.litellm_processing - INFO -    User message length: 43 chars
+[92m21:12:40 - LiteLLM:INFO[0m: utils.py:3260 - 
+LiteLLM completion() model= gpt-5; provider = openai
+2025-08-18 21:12:40,334 - LiteLLM - INFO - 
+LiteLLM completion() model= gpt-5; provider = openai
+[92m21:18:03 - LiteLLM:INFO[0m: utils.py:1262 - Wrapper: Completed Call, calling success_handler
+2025-08-18 21:18:03,926 - LiteLLM - INFO - Wrapper: Completed Call, calling success_handler
+2025-08-18 21:18:03,929 - src.core.processor.litellm_processing - INFO - 🔍 GPT-5 Debug Info:
+2025-08-18 21:18:03,934 - src.core.processor.litellm_processing - INFO -    Input tokens used: 7,572
+2025-08-18 21:18:03,934 - src.core.processor.litellm_processing - INFO -    Output tokens generated: 15,279
+2025-08-18 21:18:03,934 - src.core.processor.litellm_processing - INFO -    Total tokens: 22,851
+2025-08-18 21:18:03,934 - src.core.processor.litellm_processing - INFO -    Characters per output token: 4.12
+2025-08-18 21:18:03,934 - src.core.processor.litellm_processing - INFO -    Response object type: <class 'litellm.types.utils.ModelResponse'>
+2025-08-18 21:18:03,934 - src.core.processor.litellm_processing - INFO -    Response has choices: 1
+2025-08-18 21:18:03,934 - src.core.processor.litellm_processing - INFO -    First choice message length: 62,946 chars
+2025-08-18 21:18:03,934 - src.core.processor.litellm_processing - INFO -    First choice finish reason: stop
+2025-08-18 21:18:03,934 - src.core.processor.litellm_processing - INFO - Received response from LLM. Length: 62946 characters
+2025-08-18 21:18:03,934 - src.core.processor.simple_processor - INFO -    ✅ Expanded successfully on attempt 1: 62,946 characters
+2025-08-18 21:18:03,934 - src.core.processor.simple_processor - INFO - ✅ Response 2 complete:
+2025-08-18 21:18:03,934 - src.core.processor.simple_processor - INFO -    Generated: 62,946 characters
+2025-08-18 21:18:03,934 - src.core.processor.simple_processor - INFO -    Target: 60,000 characters
+2025-08-18 21:18:03,934 - src.core.processor.simple_processor - INFO -    Precision: 1.05x (+4.9%)
+2025-08-18 21:18:03,934 - src.core.processor.simple_processor - INFO -    Current section: 3.1 - Section 3.1
+2025-08-18 21:18:03,935 - src.core.processor.simple_processor - INFO - 💾 Saved 'Content Part 2' and progress to data/transcripts/X0tAVPDIR9I_20250818_205527/processed
+2025-08-18 21:18:05,935 - src.core.processor.simple_processor - INFO - 🔄 Generating Response 3/3: Content Part 3
+2025-08-18 21:18:05,936 - src.core.processor.simple_processor - INFO -    Target: 20,000 characters
+2025-08-18 21:18:05,936 - src.core.processor.simple_processor - INFO -    Sections: ['3.1', '3.2']
+2025-08-18 21:18:05,936 - src.core.processor.simple_processor - INFO -    Progress: 121,163/140,000 chars (86.5%)
+2025-08-18 21:18:05,936 - src.core.processor.simple_processor - INFO - 🎨 Custom user instructions detected:
+2025-08-18 21:18:05,936 - src.core.processor.simple_processor - INFO -    - role: 298 chars
+2025-08-18 21:18:05,936 - src.core.processor.simple_processor - INFO -    - script_structure: 2185 chars
+2025-08-18 21:18:05,936 - src.core.processor.simple_processor - INFO -    - tone_style: 266 chars
+2025-08-18 21:18:05,936 - src.core.processor.simple_processor - INFO -    - additional_instructions: 291 chars
+2025-08-18 21:18:05,937 - src.core.processor.simple_processor - INFO - 🎯 Section-specific requirements detected:
+2025-08-18 21:18:05,937 - src.core.processor.simple_processor - INFO -    🎬 Intro requirements: 4 found
+2025-08-18 21:18:05,937 - src.core.processor.simple_processor - INFO -    🎭 Outro requirements: 2 found
+2025-08-18 21:18:05,937 - src.core.processor.simple_processor - INFO -    📖 Content-specific: 4 requirements found
+2025-08-18 21:18:05,937 - src.core.processor.simple_processor - INFO - 🔧 Token Conversion: 20,000 chars → 5,000 tokens (limit: 128,000)
+2025-08-18 21:18:05,937 - src.core.processor.simple_processor - INFO - 🎯 Section-Aware Generation:
+2025-08-18 21:18:05,937 - src.core.processor.simple_processor - INFO -    Target: 20,000 characters
+2025-08-18 21:18:05,937 - src.core.processor.simple_processor - INFO -    Acceptable range: 17,000 - 23,000 characters
+2025-08-18 21:18:05,937 - src.core.processor.simple_processor - INFO -    Tokens requested: 5,000 tokens
+2025-08-18 21:18:05,937 - src.core.processor.simple_processor - INFO - 🔧 Token Conversion: 20,000 chars → 5,000 tokens (limit: 128,000)
+2025-08-18 21:18:05,937 - src.core.processor.litellm_processing - INFO - Processing text with model: gpt-5
+2025-08-18 21:18:05,937 - src.core.processor.litellm_processing - INFO - 🔧 API Call Parameters:
+2025-08-18 21:18:05,937 - src.core.processor.litellm_processing - INFO -    Model: gpt-5
+2025-08-18 21:18:05,937 - src.core.processor.litellm_processing - INFO -    Max completion tokens: auto (GPT-5 manages token limits)
+2025-08-18 21:18:05,937 - src.core.processor.litellm_processing - INFO -    Temperature: default (1.0) - GPT-5 uses default only
+2025-08-18 21:18:05,937 - src.core.processor.litellm_processing - INFO -    System prompt length: 14,711 chars
+2025-08-18 21:18:05,937 - src.core.processor.litellm_processing - INFO -    User message length: 57 chars
+[92m21:18:05 - LiteLLM:INFO[0m: utils.py:3260 - 
+LiteLLM completion() model= gpt-5; provider = openai
+2025-08-18 21:18:05,938 - LiteLLM - INFO - 
+LiteLLM completion() model= gpt-5; provider = openai
+[92m21:21:13 - LiteLLM:INFO[0m: utils.py:1262 - Wrapper: Completed Call, calling success_handler
+2025-08-18 21:21:13,591 - LiteLLM - INFO - Wrapper: Completed Call, calling success_handler
+2025-08-18 21:21:13,597 - src.core.processor.litellm_processing - INFO - 🔍 GPT-5 Debug Info:
+2025-08-18 21:21:13,598 - src.core.processor.litellm_processing - INFO -    Input tokens used: 3,401
+2025-08-18 21:21:13,598 - src.core.processor.litellm_processing - INFO -    Output tokens generated: 7,409
+2025-08-18 21:21:13,598 - src.core.processor.litellm_processing - INFO -    Total tokens: 10,810
+2025-08-18 21:21:13,598 - src.core.processor.litellm_processing - INFO -    Characters per output token: 3.13
+2025-08-18 21:21:13,598 - src.core.processor.litellm_processing - INFO -    Response object type: <class 'litellm.types.utils.ModelResponse'>
+2025-08-18 21:21:13,598 - src.core.processor.litellm_processing - INFO -    Response has choices: 1
+2025-08-18 21:21:13,598 - src.core.processor.litellm_processing - INFO -    First choice message length: 23,205 chars
+2025-08-18 21:21:13,599 - src.core.processor.litellm_processing - INFO -    First choice finish reason: stop
+2025-08-18 21:21:13,599 - src.core.processor.litellm_processing - INFO - Received response from LLM. Length: 23205 characters
+2025-08-18 21:21:13,599 - src.core.processor.simple_processor - WARNING -    📈 TOO LONG: 23,205 chars exceeds target (20,000)
+2025-08-18 21:21:13,599 - src.core.processor.simple_processor - INFO -    🔄 Shortening content by ~13%...
+2025-08-18 21:21:13,599 - src.core.processor.simple_processor - INFO - 🎨 Custom user instructions detected:
+2025-08-18 21:21:13,599 - src.core.processor.simple_processor - INFO -    - role: 298 chars
+2025-08-18 21:21:13,599 - src.core.processor.simple_processor - INFO -    - script_structure: 2185 chars
+2025-08-18 21:21:13,599 - src.core.processor.simple_processor - INFO -    - tone_style: 266 chars
+2025-08-18 21:21:13,599 - src.core.processor.simple_processor - INFO -    - additional_instructions: 291 chars
+2025-08-18 21:21:13,599 - src.core.processor.simple_processor - INFO -    🔄 Shortening attempt 1/3...
+2025-08-18 21:21:13,599 - src.core.processor.simple_processor - INFO - 🔧 Token Conversion: 20,000 chars → 5,000 tokens (limit: 128,000)
+2025-08-18 21:21:13,599 - src.core.processor.litellm_processing - INFO - Processing text with model: gpt-5
+2025-08-18 21:21:13,599 - src.core.processor.litellm_processing - INFO - 🔧 API Call Parameters:
+2025-08-18 21:21:13,599 - src.core.processor.litellm_processing - INFO -    Model: gpt-5
+2025-08-18 21:21:13,599 - src.core.processor.litellm_processing - INFO -    Max completion tokens: auto (GPT-5 manages token limits)
+2025-08-18 21:21:13,599 - src.core.processor.litellm_processing - INFO -    Temperature: default (1.0) - GPT-5 uses default only
+2025-08-18 21:21:13,599 - src.core.processor.litellm_processing - INFO -    System prompt length: 27,273 chars
+2025-08-18 21:21:13,599 - src.core.processor.litellm_processing - INFO -    User message length: 44 chars
+[92m21:21:13 - LiteLLM:INFO[0m: utils.py:3260 - 
+LiteLLM completion() model= gpt-5; provider = openai
+2025-08-18 21:21:13,600 - LiteLLM - INFO - 
+LiteLLM completion() model= gpt-5; provider = openai
+[92m21:23:17 - LiteLLM:INFO[0m: utils.py:1262 - Wrapper: Completed Call, calling success_handler
+2025-08-18 21:23:17,509 - LiteLLM - INFO - Wrapper: Completed Call, calling success_handler
+2025-08-18 21:23:17,512 - src.core.processor.litellm_processing - INFO - 🔍 GPT-5 Debug Info:
+2025-08-18 21:23:17,515 - src.core.processor.litellm_processing - INFO -    Input tokens used: 6,185
+2025-08-18 21:23:17,515 - src.core.processor.litellm_processing - INFO -    Output tokens generated: 5,921
+2025-08-18 21:23:17,515 - src.core.processor.litellm_processing - INFO -    Total tokens: 12,106
+2025-08-18 21:23:17,515 - src.core.processor.litellm_processing - INFO -    Characters per output token: 3.59
+2025-08-18 21:23:17,515 - src.core.processor.litellm_processing - INFO -    Response object type: <class 'litellm.types.utils.ModelResponse'>
+2025-08-18 21:23:17,515 - src.core.processor.litellm_processing - INFO -    Response has choices: 1
+2025-08-18 21:23:17,515 - src.core.processor.litellm_processing - INFO -    First choice message length: 21,245 chars
+2025-08-18 21:23:17,515 - src.core.processor.litellm_processing - INFO -    First choice finish reason: stop
+2025-08-18 21:23:17,515 - src.core.processor.litellm_processing - INFO - Received response from LLM. Length: 21245 characters
+2025-08-18 21:23:17,516 - src.core.processor.simple_processor - INFO -    ✅ Shortened successfully on attempt 1: 21,245 characters
+2025-08-18 21:23:17,516 - src.core.processor.simple_processor - INFO - ✅ Response 3 complete:
+2025-08-18 21:23:17,516 - src.core.processor.simple_processor - INFO -    Generated: 21,245 characters
+2025-08-18 21:23:17,516 - src.core.processor.simple_processor - INFO -    Target: 20,000 characters
+2025-08-18 21:23:17,516 - src.core.processor.simple_processor - INFO -    Precision: 1.06x (+6.2%)
+2025-08-18 21:23:17,517 - src.core.processor.simple_processor - INFO - 💾 Saved 'Content Part 3' and progress to data/transcripts/X0tAVPDIR9I_20250818_205527/processed
+2025-08-18 21:23:17,517 - src.core.processor.simple_processor - INFO - 🎉 Structured generation complete!
+2025-08-18 21:23:17,517 - src.core.processor.simple_processor - INFO -    Final length: 142,408 characters
+2025-08-18 21:23:17,517 - src.core.processor.simple_processor - INFO -    Target length: 140,000 characters
+2025-08-18 21:23:17,518 - src.core.processor.simple_processor - INFO -    Overall precision: 1.02x (+1.7%)
+2025-08-18 21:23:17,518 - src.core.processor.simple_processor - INFO -    Sections completed: 8
+2025-08-18 21:23:17,518 - src.core.processor.simple_processor - INFO -    Sections in progress: 0
+2025-08-18 21:23:17,518 - src.core.processor.simple_processor - INFO - 🎉 Processing complete! Generated 142,408 characters
+2025-08-18 21:23:17,519 - src.core.storage.transcript_storage - INFO - Saved processed transcript: data/transcripts/X0tAVPDIR9I_20250818_205527/processed/narrative_transcript.txt
+2025-08-18 21:23:17,526 - scripts.youtube_to_transcript - INFO - === Processing Details ===
+2025-08-18 21:23:17,526 - scripts.youtube_to_transcript - INFO - Processed as a single chunk (no chunking applied)
+2025-08-18 21:23:17,526 - scripts.youtube_to_transcript - INFO - 🎉 PROCESSING COMPLETE!
+2025-08-18 21:23:17,526 - scripts.youtube_to_transcript - INFO - ================================================================================
+2025-08-18 21:23:17,526 - scripts.youtube_to_transcript - INFO - 📁 Output file: data/transcripts/X0tAVPDIR9I_20250818_205527/processed/narrative_transcript.txt
+2025-08-18 21:23:17,526 - scripts.youtube_to_transcript - INFO - 📊 RESULTS SUMMARY:
+2025-08-18 21:23:17,526 - scripts.youtube_to_transcript - INFO -    ✨ Processed transcript: 142,408 characters
+2025-08-18 21:23:17,526 - scripts.youtube_to_transcript - INFO -    🎯 Target length: 140,000 characters
+2025-08-18 21:23:17,526 - scripts.youtube_to_transcript - INFO -    📏 Ratio to target: 1.02x
+2025-08-18 21:23:17,527 - scripts.youtube_to_transcript - INFO -    ✅ TARGET ACHIEVED - Within 20% of requested length!
+2025-08-18 21:23:17,527 - scripts.youtube_to_transcript - INFO - ================================================================================
+2025-08-18 21:23:17,527 - scripts.youtube_to_transcript - INFO - 🎉 TRANSCRIPT PROCESSING COMPLETE - RETURNING EARLY
+2025-08-18 21:23:17,527 - scripts.youtube_to_transcript - INFO -    Audio generation will be skipped for this version
+2025-08-18 21:23:17,527 - scripts.youtube_to_transcript - INFO -    Transcript is ready for use!
+2025-08-18 21:23:17,530 - __main__ - INFO - Pipeline execution started for URL: https://www.youtube.com/watch?v=X0tAVPDIR9I
+2025-08-18 21:23:17,530 - __main__ - INFO - Results will be saved to: data/transcripts/X0tAVPDIR9I_20250818_205527
+2025-08-18 21:23:17,536 - werkzeug - INFO - 127.0.0.1 - - [18/Aug/2025 21:23:17] "POST /api/transcripts/process HTTP/1.1" 200 -
+2025-08-18 21:24:59,803 - __main__ - INFO - Getting transcript list
+2025-08-18 21:24:59,805 - werkzeug - INFO - 127.0.0.1 - - [18/Aug/2025 21:24:59] "GET /api/transcripts HTTP/1.1" 200 -
+2025-08-18 21:24:59,806 - werkzeug - INFO - 127.0.0.1 - - [18/Aug/2025 21:24:59] "GET /api/prompts HTTP/1.1" 200 -
+2025-08-18 21:24:59,812 - werkzeug - INFO - 127.0.0.1 - - [18/Aug/2025 21:24:59] "GET /api/projects HTTP/1.1" 200 -
+2025-08-18 21:25:24,954 - werkzeug - INFO - 127.0.0.1 - - [18/Aug/2025 21:25:24] "GET /api/projects/X0tAVPDIR9I_20250818_205527/transcript HTTP/1.1" 200 -
 /Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/multiprocessing/resource_tracker.py:254: UserWarning: resource_tracker: There appear to be 1 leaked semaphore objects to clean up at shutdown
   warnings.warn('resource_tracker: There appear to be %d '
 /Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/multiprocessing/resource_tracker.py:254: UserWarning: resource_tracker: There appear to be 1 leaked semaphore objects to clean up at shutdown
