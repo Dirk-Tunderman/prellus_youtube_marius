@@ -1297,20 +1297,40 @@ class SimpleTranscriptProcessor:
 
 🎬 **INTRO SECTION PLAN:**"""
 
-        # Add intro requirements
+        # Add intro requirements with explicit section-specific details
         if section_reqs["intro_requirements"]:
-            prompt += "\n- Requirements from user:\n"
+            prompt += "\n- **USER'S EXPLICIT INTRO REQUIREMENTS:**\n"
             for req in section_reqs["intro_requirements"]:
                 prompt += f"  ⚡ {req}\n"
         else:
-            prompt += "\n- Requirements from user: Create engaging opening based on content\n"
+            prompt += "\n- **USER'S EXPLICIT INTRO REQUIREMENTS:** None specified - create engaging opening based on content\n"
 
-        # Add literal content for intro
-        intro_literals = [lit for lit in section_reqs["literal_content"] if any(word in lit.lower() for word in ["intro", "opening", "start", "begin", "hook"])]
+        # Add intro-specific literal content with clear labeling
+        intro_literals = [lit for lit in section_reqs["literal_content"] if lit.startswith("INTRO:")]
         if intro_literals:
-            prompt += "- Must include literal content:\n"
+            prompt += "- **INTRO LITERAL CONTENT (EXACT WORDING REQUIRED):**\n"
             for literal in intro_literals:
-                prompt += f"""  🚨 "{literal}"\n"""
+                clean_literal = literal.replace("INTRO: ", "")
+                prompt += f"""  🚨 "{clean_literal}"\n"""
+
+        # Add general literal content that could be used in intro
+        general_literals = [lit for lit in section_reqs["literal_content"] if not lit.startswith(("INTRO:", "OUTRO:"))]
+        if general_literals:
+            prompt += "- **GENERAL LITERAL CONTENT (can be placed in intro if appropriate):**\n"
+            for literal in general_literals:
+                prompt += f"""  📝 "{literal}"\n"""
+
+        # Add any intro-specific questions or focus areas
+        intro_focus_areas = []
+        for req in section_reqs["intro_requirements"]:
+            req_lower = req.lower()
+            if any(word in req_lower for word in ["question", "ask", "focus on", "emphasize", "highlight", "mention", "include", "address", "cover"]):
+                intro_focus_areas.append(req)
+
+        if intro_focus_areas:
+            prompt += "- **INTRO SPECIFIC FOCUS AREAS/QUESTIONS:**\n"
+            for focus in intro_focus_areas:
+                prompt += f"  🎯 {focus}\n"
 
         prompt += f"""
 📖 **MAIN CONTENT SECTIONS:**"""
@@ -1362,29 +1382,62 @@ class SimpleTranscriptProcessor:
         else:
             # Add content-specific requirements if available
             if section_reqs["content_specific"]:
+                prompt += "\n- **USER'S EXPLICIT MAIN CONTENT REQUIREMENTS:**"
                 for req_num, req in section_reqs["content_specific"].items():
-                    prompt += f"\n- Section {req_num}: {req}"
+                    prompt += f"\n  ⚡ Section {req_num}: {req}"
             else:
-                prompt += "\n- Develop main content based on transcript material and user structure"
+                prompt += "\n- **USER'S EXPLICIT MAIN CONTENT REQUIREMENTS:** None specified - develop main content based on transcript material and user structure"
+
+        # Add any main content specific focus areas or questions
+        main_content_focus = []
+        for req_num, req in section_reqs["content_specific"].items():
+            req_lower = req.lower()
+            if any(word in req_lower for word in ["question", "ask", "focus on", "emphasize", "highlight", "mention", "include", "address", "cover", "discuss", "explain", "analyze"]):
+                main_content_focus.append(req)
+
+        if main_content_focus:
+            prompt += "\n- **MAIN CONTENT SPECIFIC FOCUS AREAS/QUESTIONS:**"
+            for focus in main_content_focus:
+                prompt += f"\n  🎯 {focus}"
 
         prompt += f"""
 
 🎭 **OUTRO SECTION PLAN:**"""
 
-        # Add outro requirements
+        # Add outro requirements with explicit section-specific details
         if section_reqs["outro_requirements"]:
-            prompt += "\n- Requirements from user:\n"
+            prompt += "\n- **USER'S EXPLICIT OUTRO REQUIREMENTS:**\n"
             for req in section_reqs["outro_requirements"]:
                 prompt += f"  ⚡ {req}\n"
         else:
-            prompt += "\n- Requirements from user: Create satisfying conclusion based on content\n"
+            prompt += "\n- **USER'S EXPLICIT OUTRO REQUIREMENTS:** None specified - create satisfying conclusion based on content\n"
 
-        # Add literal content for outro
-        outro_literals = [lit for lit in section_reqs["literal_content"] if any(word in lit.lower() for word in ["outro", "conclusion", "ending", "close", "final"])]
+        # Add outro-specific literal content with clear labeling
+        outro_literals = [lit for lit in section_reqs["literal_content"] if lit.startswith("OUTRO:")]
         if outro_literals:
-            prompt += "- Must include literal content:\n"
+            prompt += "- **OUTRO LITERAL CONTENT (EXACT WORDING REQUIRED):**\n"
             for literal in outro_literals:
-                prompt += f"""  🚨 "{literal}"\n"""
+                clean_literal = literal.replace("OUTRO: ", "")
+                prompt += f"""  🚨 "{clean_literal}"\n"""
+
+        # Add general literal content that could be used in outro
+        general_literals = [lit for lit in section_reqs["literal_content"] if not lit.startswith(("INTRO:", "OUTRO:"))]
+        if general_literals:
+            prompt += "- **GENERAL LITERAL CONTENT (can be placed in outro if appropriate):**\n"
+            for literal in general_literals:
+                prompt += f"""  📝 "{literal}"\n"""
+
+        # Add any outro-specific questions or focus areas
+        outro_focus_areas = []
+        for req in section_reqs["outro_requirements"]:
+            req_lower = req.lower()
+            if any(word in req_lower for word in ["question", "ask", "focus on", "emphasize", "highlight", "mention", "include", "address", "cover", "call to action", "cta", "conclude with", "end with"]):
+                outro_focus_areas.append(req)
+
+        if outro_focus_areas:
+            prompt += "- **OUTRO SPECIFIC FOCUS AREAS/QUESTIONS/CALLS-TO-ACTION:**\n"
+            for focus in outro_focus_areas:
+                prompt += f"  🎯 {focus}\n"
 
         # Add all literal content that doesn't fit intro/outro
         general_literals = [lit for lit in section_reqs["literal_content"]
