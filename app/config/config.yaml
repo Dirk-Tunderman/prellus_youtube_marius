@@ -5,15 +5,15 @@ ai:
   - gpt-4o
   max_retries: 5
   max_tokens: 8192
-  model: claude-3-7-sonnet-20250219
+  model: gpt-5
   retry_delay: 2
   temperature: 0.7
 character_conversion:
-  words_per_minute: 200        # Base TTS reading speed (WPM)
-  chars_per_word: 5           # Characters per word (including space)
-  chars_per_minute: 1000       # Updated from 1000 for more realistic reading pace
-  gpt5_chars_per_response: 60000   # GPT-5 observed output limit
-  claude_chars_per_response: 60000 # Claude observed output limit (safety measure)
+  chars_per_minute: 1000
+  chars_per_word: 5
+  claude_chars_per_response: 60000
+  gpt5_chars_per_response: 60000
+  words_per_minute: 200
 chunked_processing:
   chunk_size: 25000
   max_output_length: 28000

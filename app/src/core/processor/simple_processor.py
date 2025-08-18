@@ -773,14 +773,14 @@ class SimpleTranscriptProcessor:
     def _extract_user_instructions(self) -> Dict[str, str]:
         """Extract all user instructions from config."""
         instructions = {}
-        
+
         # Extract all prompt components
         instructions["role"] = self.ai_config.get("prompt_role", "You are an expert writer tasked with processing transcript content.")
         instructions["script_structure"] = self.ai_config.get("prompt_script_structure", "")
         instructions["tone_style"] = self.ai_config.get("prompt_tone_style", "")
         instructions["retention_flow"] = self.ai_config.get("prompt_retention_flow", "")
         instructions["additional_instructions"] = self.ai_config.get("prompt_additional_instructions", "")
-        
+
         # Log what we found
         has_custom = any(v and v != "You are an expert writer tasked with processing transcript content." for v in instructions.values())
         if has_custom:
@@ -790,8 +790,200 @@ class SimpleTranscriptProcessor:
                     logger.info(f"   - {key}: {len(value)} chars")
         else:
             logger.info("📝 Using default instructions (no custom user input)")
-        
+
         return instructions
+
+    def _parse_section_specific_requirements(self, user_instructions: Dict[str, str]) -> Dict[str, Any]:
+        """
+        Parse user instructions to extract section-specific requirements.
+        Simple keyword-based parsing - no complex automatic detection.
+        """
+        section_reqs = {
+            "intro_requirements": [],
+            "outro_requirements": [],
+            "content_specific": {},
+            "literal_content": [],
+            "general_requirements": {}
+        }
+
+        # Combine all instruction text for parsing
+        all_text = ""
+        for key, value in user_instructions.items():
+            if value:
+                all_text += f"{key}: {value}\n"
+
+        # Simple keyword matching for intro requirements
+        intro_keywords = ["intro", "introduction", "opening", "start", "begin", "hook", "opener", "lead-in", "beginning"]
+        outro_keywords = ["outro", "conclusion", "ending", "close", "final", "last", "wrap", "summary", "call to action", "cta", "finish"]
+
+        # Parse line by line for section-specific requirements
+        lines = all_text.split('\n')
+        for line in lines:
+            line_lower = line.lower().strip()
+            if not line_lower:
+                continue
+
+            # Check for intro-specific requirements
+            if any(keyword in line_lower for keyword in intro_keywords):
+                section_reqs["intro_requirements"].append(line.strip())
+
+            # Check for outro-specific requirements
+            elif any(keyword in line_lower for keyword in outro_keywords):
+                section_reqs["outro_requirements"].append(line.strip())
+
+            # Extract literal content (content in quotes)
+            import re
+            quoted_content = re.findall(r'"([^"]*)"', line)
+            for quote in quoted_content:
+                if quote.strip():
+                    section_reqs["literal_content"].append(quote.strip())
+
+            # Extract content-specific requirements (mentions of specific topics/parts)
+            content_keywords = ["part", "chapter", "section", "topic", "about", "cover", "discuss", "mention", "include"]
+            if any(keyword in line_lower for keyword in content_keywords):
+                # Simple extraction - store the line for later use
+                section_reqs["content_specific"][len(section_reqs["content_specific"]) + 1] = line.strip()
+
+        # Store general requirements
+        section_reqs["general_requirements"] = {
+            "role": user_instructions.get("role", ""),
+            "tone_style": user_instructions.get("tone_style", ""),
+            "retention_flow": user_instructions.get("retention_flow", ""),
+            "script_structure": user_instructions.get("script_structure", ""),
+            "additional_instructions": user_instructions.get("additional_instructions", "")
+        }
+
+        # Log what we found
+        if section_reqs["intro_requirements"] or section_reqs["outro_requirements"] or section_reqs["literal_content"]:
+            logger.info("🎯 Section-specific requirements detected:")
+            if section_reqs["intro_requirements"]:
+                logger.info(f"   🎬 Intro requirements: {len(section_reqs['intro_requirements'])} found")
+            if section_reqs["outro_requirements"]:
+                logger.info(f"   🎭 Outro requirements: {len(section_reqs['outro_requirements'])} found")
+            if section_reqs["literal_content"]:
+                logger.info(f"   📝 Literal content: {len(section_reqs['literal_content'])} phrases found")
+            if section_reqs["content_specific"]:
+                logger.info(f"   📖 Content-specific: {len(section_reqs['content_specific'])} requirements found")
+
+        return section_reqs
+
+    def _format_section_requirements_for_prompt(
+        self,
+        section_reqs: Dict[str, Any],
+        current_section: str = "general",
+        response_num: int = 1,
+        is_final_response: bool = False
+    ) -> str:
+        """
+        Format section-specific requirements into a prominent prompt section.
+
+        Args:
+            section_reqs: Section requirements from _parse_section_specific_requirements
+            current_section: Current section being generated (intro, main, outro)
+            response_num: Current response number
+            is_final_response: Whether this is the final response
+
+        Returns:
+            Formatted string for inclusion in prompts
+        """
+        # Determine section type
+        if response_num == 1:
+            section_type = "INTRO"
+        elif is_final_response:
+            section_type = "OUTRO"
+        else:
+            section_type = f"PART {response_num - 1}"
+
+        prompt_section = f"""
+🚨🚨🚨 ABSOLUTE COMPLIANCE WITH USER INSTRUCTIONS REQUIRED 🚨🚨🚨
+═══════════════════════════════════════════════════════════════
+
+⚡ **CRITICAL**: You MUST follow these user instructions exactly. Any deviation is unacceptable.
+⚡ **AWARENESS**: You are creating {section_type} - pay special attention to requirements for this section.
+⚡ **LITERAL COMPLIANCE**: When user specifies exact content, include it exactly as requested.
+
+═══════════════════════════════════════════════════════════════
+
+📍 **CURRENT SECTION CONTEXT:**
+- You are creating: {section_type}
+- Section purpose: {"Opening/hook content" if response_num == 1 else "Closing/conclusion content" if is_final_response else "Main content development"}
+- Special attention needed for: {"Intro-specific requirements" if response_num == 1 else "Outro-specific requirements" if is_final_response else "Content-specific requirements"}
+
+"""
+
+        # Add section-specific requirements
+        if response_num == 1 and section_reqs["intro_requirements"]:
+            prompt_section += """🎬 **INTRO-SPECIFIC REQUIREMENTS (MANDATORY FOR THIS SECTION):**\n"""
+            for req in section_reqs["intro_requirements"]:
+                prompt_section += f"   ⚡ {req}\n"
+            prompt_section += "\n"
+
+        if is_final_response and section_reqs["outro_requirements"]:
+            prompt_section += """🎭 **OUTRO-SPECIFIC REQUIREMENTS (MANDATORY FOR THIS SECTION):**\n"""
+            for req in section_reqs["outro_requirements"]:
+                prompt_section += f"   ⚡ {req}\n"
+            prompt_section += "\n"
+
+        # Add content-specific requirements
+        if section_reqs["content_specific"]:
+            prompt_section += f"""📖 **CONTENT-SPECIFIC REQUIREMENTS FOR {section_type}:**\n"""
+            for req_num, req in section_reqs["content_specific"].items():
+                prompt_section += f"   📋 {req}\n"
+            prompt_section += "\n"
+
+        # Add literal content requirements
+        if section_reqs["literal_content"]:
+            prompt_section += """⚡ **LITERAL REQUIREMENTS (MUST INCLUDE EXACTLY):**\n"""
+            for literal in section_reqs["literal_content"]:
+                prompt_section += f"""   🚨 "{literal}"\n"""
+            prompt_section += "\n"
+
+        # Add general requirements with emphasis
+        prompt_section += """🔍 **USER INSTRUCTION ANALYSIS FOR THIS SECTION:**
+
+📋 **GENERAL REQUIREMENTS (Apply to all sections):**\n"""
+
+        if section_reqs["general_requirements"]["role"]:
+            prompt_section += f"""   🎯 Role: {section_reqs["general_requirements"]["role"]}\n"""
+        if section_reqs["general_requirements"]["tone_style"]:
+            prompt_section += f"""   🎭 Tone & Style: {section_reqs["general_requirements"]["tone_style"]}\n"""
+        if section_reqs["general_requirements"]["retention_flow"]:
+            prompt_section += f"""   🔄 Retention & Flow: {section_reqs["general_requirements"]["retention_flow"]}\n"""
+
+        prompt_section += "\n"
+
+        # Add reminders for other sections (awareness)
+        if not response_num == 1 and section_reqs["intro_requirements"]:
+            prompt_section += """🎬 **REMEMBER - INTRO REQUIREMENTS (for reference):**\n"""
+            for req in section_reqs["intro_requirements"]:
+                prompt_section += f"   📝 {req}\n"
+            prompt_section += "\n"
+
+        if not is_final_response and section_reqs["outro_requirements"]:
+            prompt_section += """🎭 **REMEMBER - OUTRO REQUIREMENTS (for reference):**\n"""
+            for req in section_reqs["outro_requirements"]:
+                prompt_section += f"   📝 {req}\n"
+            prompt_section += "\n"
+
+        prompt_section += """🚨 **CRITICAL REMINDERS FOR THIS SECTION:**
+- You MUST follow user instructions exactly
+- Pay special attention to requirements for """ + section_type + """
+- Include any literal content specified for this section
+- Maintain the exact tone and style requested by user
+
+🔄 **ANTI-REPETITION GUIDANCE - CRITICAL FOR QUALITY:**
+- This is part of a COMPLETE STORY/TRANSCRIPT - avoid repetitive content
+- If a literal quote/phrase was already used in previous content, DO NOT repeat it again
+- If a concept/topic was already covered, build upon it rather than repeating it
+- Create a COHESIVE WHOLE that flows naturally from start to finish
+- Each section should ADD NEW VALUE, not rehash previous content
+- Only repeat content if the user EXPLICITLY requests repetition
+
+═══════════════════════════════════════════════════════════════
+
+"""
+
+        return prompt_section
     
     def _extract_style_profile(self, user_instructions: Dict[str, str]) -> Dict[str, str]:
         """
@@ -920,7 +1112,10 @@ class SimpleTranscriptProcessor:
         self, transcript_text: str, target_length: int, user_instructions: Dict[str, str], response_plan: dict
     ) -> str:
         """Build CONCISE master document prompt - outline only, no content."""
-        
+
+        # Parse section-specific requirements
+        section_reqs = self._parse_section_specific_requirements(user_instructions)
+
         # Parse time-based instructions if present
         script_structure = user_instructions.get("script_structure", "")
         time_segments = self._parse_time_based_instructions(script_structure, target_length) if script_structure else []
@@ -969,6 +1164,67 @@ class SimpleTranscriptProcessor:
 🔥 **USER-DEFINED SCRIPT STRUCTURE (HOLY BLUEPRINT):**
 {script_structure if script_structure else 'Create appropriate structure based on content'}
 {time_conversion_note}
+
+📋 **MASTER DOCUMENT SECTION ANALYSIS:**
+
+🎬 **INTRO SECTION PLAN:**"""
+
+        # Add intro requirements
+        if section_reqs["intro_requirements"]:
+            prompt += "\n- Requirements from user:\n"
+            for req in section_reqs["intro_requirements"]:
+                prompt += f"  ⚡ {req}\n"
+        else:
+            prompt += "\n- Requirements from user: Create engaging opening based on content\n"
+
+        # Add literal content for intro
+        intro_literals = [lit for lit in section_reqs["literal_content"] if any(word in lit.lower() for word in ["intro", "opening", "start", "begin", "hook"])]
+        if intro_literals:
+            prompt += "- Must include literal content:\n"
+            for literal in intro_literals:
+                prompt += f"""  🚨 "{literal}"\n"""
+
+        prompt += f"""
+📖 **MAIN CONTENT SECTIONS:**"""
+
+        # Add content-specific requirements
+        if section_reqs["content_specific"]:
+            for req_num, req in section_reqs["content_specific"].items():
+                prompt += f"\n- Section {req_num}: {req}"
+        else:
+            prompt += "\n- Develop main content based on transcript material"
+
+        prompt += f"""
+
+🎭 **OUTRO SECTION PLAN:**"""
+
+        # Add outro requirements
+        if section_reqs["outro_requirements"]:
+            prompt += "\n- Requirements from user:\n"
+            for req in section_reqs["outro_requirements"]:
+                prompt += f"  ⚡ {req}\n"
+        else:
+            prompt += "\n- Requirements from user: Create satisfying conclusion based on content\n"
+
+        # Add literal content for outro
+        outro_literals = [lit for lit in section_reqs["literal_content"] if any(word in lit.lower() for word in ["outro", "conclusion", "ending", "close", "final"])]
+        if outro_literals:
+            prompt += "- Must include literal content:\n"
+            for literal in outro_literals:
+                prompt += f"""  🚨 "{literal}"\n"""
+
+        # Add all literal content that doesn't fit intro/outro
+        general_literals = [lit for lit in section_reqs["literal_content"]
+                          if not any(word in lit.lower() for word in ["intro", "opening", "start", "begin", "hook", "outro", "conclusion", "ending", "close", "final"])]
+        if general_literals:
+            prompt += f"""
+
+⚡ **LITERAL CONTENT TO INCLUDE THROUGHOUT:**"""
+            for literal in general_literals:
+                prompt += f"""
+- "{literal}" (exact phrase required)"""
+
+        prompt += f"""
 
 ═══════════════════════════════════════════════════════════════
 
@@ -1676,11 +1932,17 @@ Please create your enriched version that falls within the target range while pre
         boundary_manager: CharacterBoundaryManager
     ) -> str:
         """Build response prompt with section awareness."""
-        
+
         user_instructions = self._extract_user_instructions()
         response_num = response_section.response_num
         target_chars = response_section.total_target_chars
         is_final_response = response_section.response_num == len(boundary_manager.structure.response_sections)
+
+        # Parse section-specific requirements and format for prompt
+        section_reqs = self._parse_section_specific_requirements(user_instructions)
+        section_requirements = self._format_section_requirements_for_prompt(
+            section_reqs, "section-aware", response_num, is_final_response
+        )
         
         # Get current section context
         current_chars = len(previous_content)
@@ -1696,7 +1958,9 @@ Please create your enriched version that falls within the target range while pre
             if section.user_instructions:
                 section_context += f"  Instructions: {section.user_instructions}\n"
         
-        prompt = f"""# RESPONSE {response_num} GENERATION - SECTION-AWARE
+        prompt = f"""{section_requirements}
+
+# RESPONSE {response_num} GENERATION - SECTION-AWARE
 
 🚨 **CRITICAL TTS OUTPUT INSTRUCTIONS - IMMEDIATE DISQUALIFICATION IF VIOLATED** 🚨
 
@@ -1773,6 +2037,13 @@ You are generating Response {response_num} which covers these sections:
 ## CONTEXT
 {"This is the FIRST response - begin the narrative" if response_num == 1 else f"Previous content (last 2000 chars): ...{previous_content[-2000:]}"}
 
+🔄 **CRITICAL ANTI-REPETITION GUIDANCE:**
+- This is Response {response_num} - part of a COMPLETE STORY with seamless flow
+- Review previous content to avoid repetition of concepts, quotes, or ideas
+- If something was already covered, BUILD UPON IT rather than repeating it
+- Each response should ADD NEW VALUE and ADVANCE THE NARRATIVE
+- Only repeat content if user explicitly requests repetition or emphasis
+
 ## YOUR TASK
 Generate Response {response_num} content following the section structure above.
 
@@ -1811,16 +2082,25 @@ Generate Response {response_num} content following the section structure above.
         reduction_percentage: int
     ) -> str:
         """Build a prompt specifically for generating shorter content."""
-        
+
         user_instructions = self._extract_user_instructions()
         response_num = response_section.response_num
         target_chars = response_section.total_target_chars
+        is_final_response = response_section.response_num == len(boundary_manager.structure.response_sections)
+
+        # Parse section-specific requirements and format for prompt
+        section_reqs = self._parse_section_specific_requirements(user_instructions)
+        section_requirements = self._format_section_requirements_for_prompt(
+            section_reqs, "shortening", response_num, is_final_response
+        )
         
         # Get current section context
         current_chars = len(previous_content)
         current_section = boundary_manager.structure.get_current_section(current_chars)
         
-        prompt = f"""# SHORTENED RESPONSE {response_num} GENERATION - OVERFLOW CORRECTION
+        prompt = f"""{section_requirements}
+
+# SHORTENED RESPONSE {response_num} GENERATION - OVERFLOW CORRECTION
 
 ## CRITICAL SITUATION
 The previous generation was TOO LONG and exceeded acceptable limits.
@@ -1847,10 +2127,12 @@ Sections to cover:
 ## SHORTENING STRATEGY
 To achieve the required length reduction:
 1. **Be more concise** - eliminate unnecessary words and phrases
-2. **Focus on essentials** - prioritize key points over detailed explanations  
+2. **Focus on essentials** - prioritize key points over detailed explanations
 3. **Reduce examples** - fewer but more impactful illustrations
 4. **Tighten transitions** - shorter bridges between concepts
 5. **Streamline descriptions** - more direct, less elaborate language
+6. **Avoid repetition** - don't repeat concepts already covered in previous content
+7. **Build cohesively** - ensure this shortened content flows naturally with the overall story
 
 ## USER REQUIREMENTS (MAINTAIN)
 Role: {user_instructions['role']}
@@ -2139,6 +2421,13 @@ Continue the content within the {current_section.title} section.
         # Get user instructions
         user_instructions = self._extract_user_instructions()
 
+        # Parse section-specific requirements and format for prompt
+        section_reqs = self._parse_section_specific_requirements(user_instructions)
+        # For catch-up, we don't know exact response number, so use general approach
+        section_requirements = self._format_section_requirements_for_prompt(
+            section_reqs, "catch-up", 1, is_final_response
+        )
+
         # Get context from recent content (last 3000 characters)
         context_chars = min(3000, len(generated_content))
         recent_content = generated_content[-context_chars:] if context_chars > 0 else ""
@@ -2147,7 +2436,9 @@ Continue the content within the {current_section.title} section.
         min_chars = int(deficit * 0.85)
         max_chars = int(deficit * 1.15)
 
-        prompt = f"""# CATCH-UP CONTENT GENERATION
+        prompt = f"""{section_requirements}
+
+# CATCH-UP CONTENT GENERATION
 
 🚨 **CRITICAL TTS OUTPUT INSTRUCTIONS - IMMEDIATE DISQUALIFICATION IF VIOLATED** 🚨
 
@@ -2197,8 +2488,9 @@ You need to CONTINUE the story/content seamlessly from where it left off.
 2. **MAINTAIN TONE & STYLE** - Follow user's specified style: {user_instructions.get('tone_style', 'Professional, engaging')}
 3. **ADD SUBSTANTIAL CONTENT** - This is not filler, add meaningful content
 4. **DO NOT CONCLUDE** - {"This is NOT the ending - leave room for proper conclusion" if not is_final_response else "You may conclude if this completes the story naturally"}
-5. **NO REPETITION** - Don't repeat what was already said
-6. **NATURAL FLOW** - Content should feel like a natural continuation
+5. **NO REPETITION** - Don't repeat concepts, quotes, or ideas already covered
+6. **BUILD UPON PREVIOUS** - Expand on existing content rather than rehashing it
+7. **NATURAL FLOW** - Content should feel like a natural continuation
 
 **🔍 MANDATORY CATCH-UP VERIFICATION:**
 1. Count the EXACT number of characters in your catch-up response
@@ -2230,7 +2522,15 @@ You need to CONTINUE the story/content seamlessly from where it left off.
         user_instructions = self._extract_user_instructions()
         is_final_response = response_num == response_plan["responses_needed"]
 
-        prompt = f"""🚨 **CRITICAL TTS OUTPUT INSTRUCTIONS - IMMEDIATE DISQUALIFICATION IF VIOLATED** 🚨
+        # Parse section-specific requirements and format for prompt
+        section_reqs = self._parse_section_specific_requirements(user_instructions)
+        section_requirements = self._format_section_requirements_for_prompt(
+            section_reqs, "general", response_num, is_final_response
+        )
+
+        prompt = f"""{section_requirements}
+
+🚨 **CRITICAL TTS OUTPUT INSTRUCTIONS - IMMEDIATE DISQUALIFICATION IF VIOLATED** 🚨
 
 You must generate text that will be read aloud by a Text-to-Speech (TTS) system. Any formatting violations will result in IMMEDIATE FAILURE.
 
@@ -2274,6 +2574,15 @@ You must generate text that will be read aloud by a Text-to-Speech (TTS) system.
 
 ## CONTEXT
 {"This is the FIRST response - begin the narrative" if response_num == 1 else f"Previous content (last 2000 chars): ...{previous_content[-2000:]}"}
+
+🔄 **CRITICAL ANTI-REPETITION GUIDANCE:**
+- This is Response {response_num} of {response_plan["responses_needed"]} - part of a COMPLETE STORY
+- Review the previous content carefully to avoid repetition
+- If a literal quote/phrase was already used, DO NOT repeat it unless user explicitly requests repetition
+- If a concept was already covered, BUILD UPON IT rather than repeating it
+- Each response should ADD NEW VALUE and ADVANCE THE NARRATIVE
+- Create SEAMLESS FLOW from previous content - no redundant rehashing
+- Only repeat if the user specifically asks for repetition or emphasis
 
 ═══════════════════════════════════════════════════════════════
 
